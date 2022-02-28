@@ -27,11 +27,12 @@ def plot_specgram_librosa(filename, fileformat, no):
     audio = AudioSegment.from_file(filename, format=fileformat)
     converted_audio = convert_audio(audio)
     time_series, sampling_rate = librosa.load(converted_audio, sr=None)  # Makes floating point time series
+    time_series_trimmed, index = librosa.effects.trim(time_series, top_db=30)
 
     window_size = 1000
     hop_length = 128  # Default
     window = np.hanning(window_size)  # Returns hanning window
-    stft = librosa.core.spectrum.stft(time_series, n_fft=window_size, hop_length=hop_length, window=window)  # STFT: Short-time Fourier transform
+    stft = librosa.core.spectrum.stft(time_series_trimmed, n_fft=window_size, hop_length=hop_length, window=window)  # STFT: Short-time Fourier transform
     out = 2 * np.abs(stft) / np.sum(window)  # Finds amplitude?
 
     plt.figure(no)
