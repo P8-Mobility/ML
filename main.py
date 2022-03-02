@@ -2,10 +2,11 @@ import matplotlib.pyplot as plt
 from matplotlib import image as mpimg
 
 import cnn
+import occ
 
 
 def main():
-    cnn.run()
+    occ.run()
     return
 
 
