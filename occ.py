@@ -1,8 +1,9 @@
 import pandas
-import Librosa
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
+import librosa
+import csv
 
 # Import MINST data
 from tensorflow.examples.tutorials.mnist import input_data
@@ -15,9 +16,9 @@ display_step = 1
 examples_to_show = 10
 
 # Network Parameters
-n_hidden_1 = 256 # 1st layer num features
-n_hidden_2 = 128 # 2nd layer num features
-n_input = 784 # MNIST data input (img shape: 28*28)
+n_hidden_1 = 256  # 1st layer num features
+n_hidden_2 = 128  # 2nd layer num features
+n_input = 784  # MNIST data input (img shape: 28*28)
 
 # tf Graph input (only pictures)
 X = tf.placeholder("float", [None, n_input])
@@ -53,8 +54,7 @@ for epoch in range(training_epochs):
 print("Optimization Finished!")
 
 # Applying encode and decode over test set
-encode_decode = sess.run(
- y_pred, feed_dict={X: mnist.test.images[:examples_to_show]})
+encode_decode = sess.run(y_pred, feed_dict={X: mnist.test.images[:examples_to_show]})
 
 # Lets Let’s simply visualize our graphs!
 
@@ -81,18 +81,28 @@ def decoder(x):
     return layer_2
 
 def run():
-    extract_and_normalize()
-    extract_class_names()
-    convert_to_pandas()
+    data = extract_and_normalize()
+    classes = extract_class_names()
+    convert_to_pandas(data, classes)
 
 
 def extract_and_normalize():
-    pass
+    file_paths = librosa.util.find_files("OCCFiles/", ext=['wav'])
+    files = np.empty([6, 501, 809])
+    for path in file_paths:
+        time_series, sampling_rate = librosa.load(path, sr=48000)  # Makes floating point time series
+        files += librosa.feature.mfcc(time_series, sampling_rate)
+    return librosa.util.normalize(files)
 
 
 def extract_class_names():
-    pass
+    classes = []
+    with open('class.csv', 'r') as file:
+        reader = csv.reader(file)
+        for row in reader:
+            if len(row) >= 2 and row[1] not in classes:
+                classes.append(row[1])
+    return classes
 
-
-def convert_to_pandas():
+def convert_to_pandas(data, classes):
     pass
