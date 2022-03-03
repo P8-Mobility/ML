@@ -8,6 +8,7 @@ import librosa.display
 import os
 import soundfile as sf
 import noisereduce as nr
+import pyrubberband
 
 
 def convert_audio(audio):
@@ -44,8 +45,11 @@ def plot_specgram_librosa(filename, fileformat, no):
 
 def preprocess_sound():
     files = []
+    max_duration = 0
     dir_list = os.listdir()
+    duration_list = []
     path = "sound/2ndBatch"
+
     for file in os.listdir(path):
         time_series, sampling_rate = librosa.load(path + "/" + file)  # Makes floating point time series
 
@@ -55,11 +59,21 @@ def preprocess_sound():
         time_series = time_series * ratio
 
         # Reduce noice and trim
-        reduced_noise = nr.reduce_noise(y=time_series, sr=sampling_rate)
-        time_series_trimmed, index = librosa.effects.trim(reduced_noise, top_db=30)
+        time_series = nr.reduce_noise(y=time_series, sr=sampling_rate)
+        time_series, index = librosa.effects.trim(time_series, top_db=30)
 
-        files.append(time_series_trimmed)
-        #sf.write(str(time_series_trimmed) + '.wav', time_series_trimmed, sampling_rate, subtype='PCM_24')
+        # Finds duration for avg
+        duration = librosa.get_duration(y=time_series, sr=sampling_rate)
+        duration_list.append(duration)
+        files.append(time_series)
+
+    avg_duration = sum(duration_list) / len(duration_list)
+
+    for file in files:
+        # stretches duration so all files is avg length
+        duration = librosa.get_duration(y=file, sr=sampling_rate)
+        file = librosa.effects.time_stretch(file, rate=duration / avg_duration)
+        sf.write(str(file) + '.wav', file, sampling_rate, subtype='PCM_24')
     return files
 
 
