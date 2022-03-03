@@ -1,4 +1,4 @@
-from pydub import AudioSegment, effects
+from pydub import AudioSegment
 import matplotlib.pyplot as plt
 from scipy.io import wavfile
 from tempfile import mktemp
@@ -8,7 +8,6 @@ import librosa.display
 import os
 import soundfile as sf
 import noisereduce as nr
-import pyrubberband
 
 
 def convert_audio(audio):
@@ -45,8 +44,6 @@ def plot_specgram_librosa(filename, fileformat, no):
 
 def preprocess_sound():
     files = []
-    max_duration = 0
-    dir_list = os.listdir()
     duration_list = []
     path = "sound/2ndBatch"
 
