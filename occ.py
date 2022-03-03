@@ -1,108 +1,91 @@
-import pandas
+import pandas as pd
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
 import librosa
 import csv
+from collections import Counter
+from sklearn.datasets import make_classification
+from matplotlib import pyplot
+from numpy import where
 
-# Import MINST data
-from tensorflow.examples.tutorials.mnist import input_data
-mnist = input_data.read_data_sets("/tmp/data/", one_hot=True)
-
-learning_rate = 0.01
-training_epochs = 20
-batch_size = 256
-display_step = 1
-examples_to_show = 10
-
-# Network Parameters
-n_hidden_1 = 256  # 1st layer num features
-n_hidden_2 = 128  # 2nd layer num features
-n_input = 784  # MNIST data input (img shape: 28*28)
-
-# tf Graph input (only pictures)
-X = tf.placeholder("float", [None, n_input])
-weights = {
-    'encoder_h1': tf.Variable(tf.random_normal([n_input, n_hidden_1])),
-    'encoder_h2': tf.Variable(tf.random_normal([n_hidden_1, n_hidden_2])),
-    'decoder_h1': tf.Variable(tf.random_normal([n_hidden_2, n_hidden_1])),
-    'decoder_h2': tf.Variable(tf.random_normal([n_hidden_1, n_input])),
-}
-biases = {
-    'encoder_b1': tf.Variable(tf.random_normal([n_hidden_1])),
-    'encoder_b2': tf.Variable(tf.random_normal([n_hidden_2])),
-    'decoder_b1': tf.Variable(tf.random_normal([n_hidden_1])),
-    'decoder_b2': tf.Variable(tf.random_normal([n_input])),
-}
-
-# Launch the graph
-# Using InteractiveSession (more convenient while using Notebooks)
-sess = tf.InteractiveSession()
-sess.run(init)
-
-total_batch = int(mnist.train.num_examples / batch_size)
-# Training cycle
-for epoch in range(training_epochs):
-    # Loop over all batches
-    for i in range(total_batch):
-        batch_xs, batch_ys = mnist.train.next_batch(batch_size)
-        # Run optimization op (backprop) and cost op (to get loss value)
-        _, c = sess.run([optimizer, cost], feed_dict={X: batch_xs})
-    # Display logs per epoch step
-    if epoch % display_step == 0:
-        print("Epoch:", '%04d' % (epoch+1), "cost=", "{:.9f}".format(c))
-print("Optimization Finished!")
-
-# Applying encode and decode over test set
-encode_decode = sess.run(y_pred, feed_dict={X: mnist.test.images[:examples_to_show]})
-
-# Lets Let’s simply visualize our graphs!
-
-# Compare original images with their reconstructions
-f, a = plt.subplots(2, 10, figsize=(10, 2))
-for i in range(examples_to_show):
-    a[0][i].imshow(np.reshape(mnist.test.images[i], (28, 28)))
-    a[1][i].imshow(np.reshape(encode_decode[i], (28, 28)))
-
-# Building the Encoder
-def encoder(x):
-    # Encoder first layer with sigmoid activation #1
-    layer_1 = tf.nn.sigmoid(tf.add(tf.matmul(x, weights['encoder_h1']), biases['encoder_b1']))
-    # Encoder second layer with sigmoid activation #2
-    layer_2 = tf.nn.sigmoid(tf.add(tf.matmul(layer_1,  weights['encoder_h2']), biases['encoder_b2']))
-    return layer_2
-
-# Building the decoder
-def decoder(x):
-    # Decoder first layer with sigmoid activation #1
-    layer_1 = tf.nn.sigmoid(tf.add(tf.matmul(x, weights['decoder_h1']),biases['decoder_b1']))
-    # Decoder second layer with sigmoid activation #2
-    layer_2 = tf.nn.sigmoid(tf.add(tf.matmul(layer_1, weights['decoder_h2']), biases['decoder_b2']))
-    return layer_2
-
-def run():
-    data = extract_and_normalize()
-    classes = extract_class_names()
-    convert_to_pandas(data, classes)
+from sklearn.metrics import f1_score
+from sklearn.svm import OneClassSVM
 
 
-def extract_and_normalize():
-    file_paths = librosa.util.find_files("OCCFiles/", ext=['wav'])
-    files = np.empty([6, 501, 809])
-    for path in file_paths:
-        time_series, sampling_rate = librosa.load(path, sr=48000)  # Makes floating point time series
-        files += librosa.feature.mfcc(time_series, sampling_rate)
-    return librosa.util.normalize(files)
+def split(set: np.ndarray, percentage: int) -> [np.ndarray, np.ndarray]:
+    """
+    Splits the set into two chunks with sizes based on the percentage specified
+
+    :param set: the array to be split
+    :param percentage: the percentage of the set that the size of the first chunk is
+    :return: the two sets
+    """
+    split_value = len(set) / 100 * percentage
+    return set[:split_value], set[split_value:]
 
 
-def extract_class_names():
-    classes = []
-    with open('class.csv', 'r') as file:
-        reader = csv.reader(file)
-        for row in reader:
-            if len(row) >= 2 and row[1] not in classes:
-                classes.append(row[1])
-    return classes
+# Define dataset to consist of 10.000 examples with 10 in the minority class and 9.990 in the majority class
+data, labels = make_classification(n_samples=10000, n_features=2, n_redundant=0, n_clusters_per_class=1,
+                                   weights=[0.999], flip_y=0, random_state=4)
+# Summarize class distribution
+counter = Counter(labels)
+print(counter)
 
-def convert_to_pandas(data, classes):
-    pass
+# # Scatter plot of examples by class label
+# for label, _ in counter.items():
+#     row_ix = where(labels == label)[0]
+#     pyplot.scatter(data[row_ix, 0], data[row_ix, 1], label=str(label))
+# pyplot.legend()
+# pyplot.show()
+
+# Define outlier detection model
+model = OneClassSVM(gamma='scale', nu=0.01)
+
+# Split data set into train and test data
+train_data, test_data = split(data, 70)
+train_labels, test_labels = split(labels, 70)
+
+# Fit on majority class
+train_data = train_data[train_labels == 0]
+model.fit(train_data)
+
+# Detect outliers in the test set
+# Outputs +1 for normal examples, so-called inliers, and -1 for outliers.
+predicted_labels = model.predict(test_data)
+
+# Mark inliers 1, outliers -1
+test_labels[test_labels == 1] = -1
+test_labels[test_labels == 0] = 1
+
+# Calculate score
+score = f1_score(test_labels, predicted_labels, pos_label=-1)
+print('F1 Score: %.3f' % score)
+
+# def run():
+#     data = extract_and_normalize()
+#     classes = extract_class_names()
+#     convert_to_pandas(data, classes)
+#
+#
+# def extract_and_normalize():
+#     file_paths = librosa.util.find_files("OCCFiles/", ext=['wav'])
+#     files = np.empty([6, 501, 809])
+#     for path in file_paths:
+#         time_series, sampling_rate = librosa.load(path, sr=48000)  # Makes floating point time series
+#         files += librosa.feature.mfcc(time_series, sampling_rate)
+#     return librosa.util.normalize(files)
+#
+#
+# def extract_class_names():
+#     classes = []
+#     with open('class.csv', 'r') as file:
+#         reader = csv.reader(file)
+#         for row in reader:
+#             if len(row) >= 2 and row[1] not in classes:
+#                 classes.append(row[1])
+#     return classes
+#
+#
+# def convert_to_pandas(data: np.ndarray, classes: list):
+#     data_frame = {'data': data, 'label': classes[0]}
