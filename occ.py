@@ -9,8 +9,23 @@ from sklearn.datasets import make_classification
 from matplotlib import pyplot
 from numpy import where
 
-from sklearn.metrics import f1_score
+from sklearn.metrics import f1_score, accuracy_score
 from sklearn.svm import OneClassSVM
+
+import preprocessing
+
+
+def show_distribution(data: np.ndarray, labels: np.ndarray):
+    # Summarize class distribution
+    counter = Counter(labels)
+    print(counter)
+
+    # Scatter plot of examples by class label
+    for label, _ in counter.items():
+        row_ix = where(labels == label)[0]
+        pyplot.scatter(data[row_ix, 0], data[row_ix, 1], label=str(label))
+    pyplot.legend()
+    pyplot.show()
 
 
 def split(set: np.ndarray, percentage: int) -> [np.ndarray, np.ndarray]:
@@ -21,46 +36,58 @@ def split(set: np.ndarray, percentage: int) -> [np.ndarray, np.ndarray]:
     :param percentage: the percentage of the set that the size of the first chunk is
     :return: the two sets
     """
-    split_value = len(set) / 100 * percentage
+    split_value = int(len(set) / 100 * percentage)
     return set[:split_value], set[split_value:]
 
 
-# Define dataset to consist of 10.000 examples with 10 in the minority class and 9.990 in the majority class
-data, labels = make_classification(n_samples=10000, n_features=2, n_redundant=0, n_clusters_per_class=1,
-                                   weights=[0.999], flip_y=0, random_state=4)
-# Summarize class distribution
-counter = Counter(labels)
-print(counter)
+def predict(model: OneClassSVM, test_data: np.ndarray, test_labels: np.ndarray) -> float:
+    """
+    Finds the accuracy of the model based on the test set
 
-# # Scatter plot of examples by class label
-# for label, _ in counter.items():
-#     row_ix = where(labels == label)[0]
-#     pyplot.scatter(data[row_ix, 0], data[row_ix, 1], label=str(label))
-# pyplot.legend()
-# pyplot.show()
+    :param model: the model that is being tested
+    :param test_data: the test data
+    :param test_labels: the labels of the test data
+    :return: the accuracy
+    """
+    # Detect outliers in the test set
+    # Outputs +1 for normal examples, so-called inliers, and -1 for outliers.
+    predicted_labels = model.predict(test_data)
 
-# Define outlier detection model
-model = OneClassSVM(gamma='scale', nu=0.01)
+    # Mark inliers 1, outliers -1
+    test_labels[test_labels == 1] = -1
+    test_labels[test_labels == 0] = 1
 
-# Split data set into train and test data
-train_data, test_data = split(data, 70)
-train_labels, test_labels = split(labels, 70)
+    # Calculate score
+    accuracy = accuracy_score(test_labels, predicted_labels)
+    f1 = f1_score(test_labels, predicted_labels, pos_label=1)
+    print('Accuracy score: %.3f' % accuracy)
+    print('F1 Score: %.3f' % f1)
+    return accuracy
 
-# Fit on majority class
-train_data = train_data[train_labels == 0]
-model.fit(train_data)
 
-# Detect outliers in the test set
-# Outputs +1 for normal examples, so-called inliers, and -1 for outliers.
-predicted_labels = model.predict(test_data)
+def run():
+    path = "OCCFiles"
+    files = preprocessing.preprocess_sound(path)
+    data = np.empty([len(files), files[0].size])
+    for index in range(len(files)):
+        data[index] = files[index]
+    labels = np.empty(len(files))
+    labels.fill(0)
 
-# Mark inliers 1, outliers -1
-test_labels[test_labels == 1] = -1
-test_labels[test_labels == 0] = 1
+    # show_distribution(data, labels)
 
-# Calculate score
-score = f1_score(test_labels, predicted_labels, pos_label=-1)
-print('F1 Score: %.3f' % score)
+    # Define outlier detection model
+    model = OneClassSVM(gamma='scale', nu=0.01)
+
+    # Split data set into train and test data
+    train_data, test_data = split(data, 70)
+    train_labels, test_labels = split(labels, 70)
+
+    # Fit on majority class
+    model.fit(train_data)
+
+    # Find the accuracy of the model
+    accuracy = predict(model, test_data, test_labels)
 
 # def run():
 #     data = extract_and_normalize()
@@ -89,3 +116,7 @@ print('F1 Score: %.3f' % score)
 #
 # def convert_to_pandas(data: np.ndarray, classes: list):
 #     data_frame = {'data': data, 'label': classes[0]}
+
+
+if __name__ == '__main__':
+    run()
