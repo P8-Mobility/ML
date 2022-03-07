@@ -5,6 +5,9 @@ from tempfile import mktemp
 import numpy as np
 import librosa
 import librosa.display
+import os
+import soundfile as sf
+import noisereduce as nr
 
 
 def convert_audio(audio):
@@ -39,11 +42,44 @@ def plot_specgram_librosa(filename, fileformat, no):
     librosa.display.specshow(librosa.amplitude_to_db(out, ref=np.max), y_axis='log', x_axis='time', sr=sampling_rate)
 
 
-if __name__ == '__main__':
-    plot_specgram_plt('pære_1.m4a', "m4a", 1)
-    plot_specgram_plt('bære_1.m4a', "m4a", 2)
+def preprocess_sound():
+    files = []
+    duration_list = []
+    path = "sound/2ndBatch"
 
-    plot_specgram_librosa('pære_1.m4a', "m4a", 3)
-    plot_specgram_librosa('bære_1.m4a', "m4a", 4)
+    for file in os.listdir(path):
+        time_series, sampling_rate = librosa.load(path + "/" + file)  # Makes floating point time series
+
+        # Normalize (make all batches the same level)
+        max_peak = np.max(np.abs(time_series))
+        ratio = 1 / max_peak
+        time_series = time_series * ratio
+
+        # Reduce noice and trim
+        time_series = nr.reduce_noise(y=time_series, sr=sampling_rate)
+        time_series, index = librosa.effects.trim(time_series, top_db=30)
+
+        # Finds duration for avg
+        duration = librosa.get_duration(y=time_series, sr=sampling_rate)
+        duration_list.append(duration)
+        files.append(time_series)
+
+    avg_duration = sum(duration_list) / len(duration_list)
+
+    for index in range(len(files)):
+        # stretches duration so all files is avg length
+        duration = librosa.get_duration(y=files[index], sr=sampling_rate)
+        files[index] = librosa.effects.time_stretch(files[index], rate=duration / avg_duration)
+        sf.write(str(files[index]) + '.wav', files[index], sampling_rate, subtype='PCM_24')
+    return files
+
+
+if __name__ == '__main__':
+    sound_files = preprocess_sound()
+    #plot_specgram_plt('sound/1stBatch/pære_1.m4a', "m4a", 1)
+    #plot_specgram_plt('sound/1stBatch/bære_1.m4a', "m4a", 2)
+
+    #plot_specgram_librosa('sound/1stBatch/pære_1.m4a', "m4a", 3)
+    #plot_specgram_librosa('sound/1stBatch/bære_1.m4a', "m4a", 4)
 
     plt.show()
