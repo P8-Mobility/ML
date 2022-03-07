@@ -45,7 +45,7 @@ def plot_specgram_librosa(filename, fileformat, no):
 def preprocess_sound():
     files = []
     duration_list = []
-    path = "sound/2ndBatch"
+    path = "SoundTest/sound/2ndBatch"
 
     for file in os.listdir(path):
         time_series, sampling_rate = librosa.load(path + "/" + file)  # Makes floating point time series
@@ -70,7 +70,7 @@ def preprocess_sound():
         # stretches duration so all files is avg length
         duration = librosa.get_duration(y=files[index], sr=sampling_rate)
         files[index] = librosa.effects.time_stretch(files[index], rate=duration / avg_duration)
-        sf.write(str(files[index]) + '.wav', files[index], sampling_rate, subtype='PCM_24')
+        # sf.write(str(files[index]) + '.wav', files[index], sampling_rate, subtype='PCM_24')
     return files
 
 
