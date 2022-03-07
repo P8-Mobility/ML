@@ -1,22 +1,14 @@
-import pandas as pd
-import tensorflow as tf
 import numpy as np
-import matplotlib.pyplot as plt
-import librosa
-import csv
 import pickle
-from collections import Counter
-from sklearn.datasets import make_classification
-from matplotlib import pyplot
-from numpy import where
-from os import path, listdir
 import audio
 import transformer
 
+from collections import Counter
+from matplotlib import pyplot
+from numpy import where
+from os import path, listdir
 from sklearn.metrics import f1_score, accuracy_score
 from sklearn.svm import OneClassSVM
-
-import preprocessing
 
 
 def load_files() -> (list[audio.Audio], float):
