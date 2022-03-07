@@ -68,9 +68,9 @@ def preprocess_sound():
 
     for index in range(len(files)):
         # stretches duration so all files is avg length
-        duration = librosa.get_duration(y=file, sr=sampling_rate)
+        duration = librosa.get_duration(y=files[index], sr=sampling_rate)
         files[index] = librosa.effects.time_stretch(files[index], rate=duration / avg_duration)
-        sf.write(str(file) + '.wav', file, sampling_rate, subtype='PCM_24')
+        sf.write(str(files[index]) + '.wav', files[index], sampling_rate, subtype='PCM_24')
     return files
 
 
