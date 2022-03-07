@@ -4,15 +4,49 @@ import numpy as np
 import matplotlib.pyplot as plt
 import librosa
 import csv
+import pickle
 from collections import Counter
 from sklearn.datasets import make_classification
 from matplotlib import pyplot
 from numpy import where
+from os import path, listdir
+import audio
+import transformer
 
 from sklearn.metrics import f1_score, accuracy_score
 from sklearn.svm import OneClassSVM
 
 import preprocessing
+
+
+def load_files() -> (list[audio.Audio], float):
+    """
+    Creates an audio object for each file in the folder
+
+    :return: a list of audio objects
+    """
+    path = "OCCFiles/"
+    files = []
+    duration_list = []
+
+    for file in listdir(path):
+        file = audio.load(path + file)
+        files.append(file)
+        duration_list.append(file.get_duration())
+
+    avg_duration = sum(duration_list) / len(duration_list)
+
+    return files, avg_duration
+
+
+def preprocess_files(files: list[audio.Audio], avg_duration: float) -> list[audio.Audio]:
+    for file in files:
+        transformer.normalize(file)
+        transformer.remove_noice(file)
+        transformer.trim(file)
+        transformer.stretch_to_same_time(file, avg_duration)
+
+    return files
 
 
 def show_distribution(data: np.ndarray, labels: np.ndarray):
@@ -28,16 +62,76 @@ def show_distribution(data: np.ndarray, labels: np.ndarray):
     pyplot.show()
 
 
-def split(set: np.ndarray, percentage: int) -> [np.ndarray, np.ndarray]:
+def get_model() -> OneClassSVM:
     """
-    Splits the set into two chunks with sizes based on the percentage specified
+    If existing model exists,then it is loaded in. Otherwise a new model is created
 
-    :param set: the array to be split
-    :param percentage: the percentage of the set that the size of the first chunk is
-    :return: the two sets
+    :return: The model used to classify
     """
-    split_value = int(len(set) / 100 * percentage)
-    return set[:split_value], set[split_value:]
+    filename = 'occ_model.sav'
+    if path.exists(filename):
+        return pickle.load(open(filename, 'rb'))
+    else:
+        # Define outlier detection model
+        return OneClassSVM(gamma='scale', nu=0.01)
+
+
+def split(audio_files: list[audio.Audio], subject: str = None) -> [np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Splits the set into two chunks by leaving one subject out
+
+    :param audio_files: the audio files to be split
+    :param subject: The subject that contains the test data
+    :return: the two train and test sets, as well as their labels
+    """
+    train_files = []
+    test_files = []
+
+    if subject is None:
+        subject = audio_files[0].get_id()
+
+    for file in audio_files:
+        if file.get_id() == subject:
+            test_files.append(file)
+        else:
+            train_files.append(file)
+
+    train_labels = np.empty(len(train_files))
+    test_labels = np.empty(len(test_files))
+    train_labels.fill(0)
+    test_labels.fill(0)
+
+    return convert_audio_to_np(train_files), convert_audio_to_np(test_files), train_labels, test_labels
+
+
+def convert_audio_to_np(audio_files: list[audio.Audio]) -> np.ndarray:
+    """
+    Converts a list of Audio objects to a numpy array of time series
+
+    :param audio_files: the list of Audio objects
+    :return: the converted numpy array
+    """
+    np_array = np.empty([len(audio_files), audio_files[0].time_series.size])
+
+    for index in range(len(audio_files)):
+        np_array[index] = audio_files[index].time_series
+
+    return np_array
+
+
+def train(model: OneClassSVM, train_data: np.ndarray) -> OneClassSVM:
+    """
+    Trains the model based on the training data. Only one label, so there is no need to use the labels
+
+    :param model: the model to be trained
+    :param train_data: a numpy array with data the model is trained with
+    :return: the trained model
+    """
+    # Fit on majority class
+    model.fit(train_data)
+    filename = 'occ_model.sav'
+    pickle.dump(model, open(filename, 'wb'))
+    return model
 
 
 def predict(model: OneClassSVM, test_data: np.ndarray, test_labels: np.ndarray) -> float:
@@ -66,25 +160,19 @@ def predict(model: OneClassSVM, test_data: np.ndarray, test_labels: np.ndarray) 
 
 
 def run():
-    path = "OCCFiles"
-    files = preprocessing.preprocess_sound(path)
-    data = np.empty([len(files), files[0].size])
-    for index in range(len(files)):
-        data[index] = files[index]
-    labels = np.empty(len(files))
-    labels.fill(0)
+    files, avg_duration = load_files()
+    files = preprocess_files(files, avg_duration)
+
+    # Split data set into train and test data
+    train_data, test_data, train_labels, test_labels = split(files)
 
     # show_distribution(data, labels)
 
-    # Define outlier detection model
-    model = OneClassSVM(gamma='scale', nu=0.01)
+    # Create or load a model
+    model = get_model()
 
-    # Split data set into train and test data
-    train_data, test_data = split(data, 70)
-    train_labels, test_labels = split(labels, 70)
-
-    # Fit on majority class
-    model.fit(train_data)
+    # Train the model
+    train(model, train_data)
 
     # Find the accuracy of the model
     accuracy = predict(model, test_data, test_labels)
