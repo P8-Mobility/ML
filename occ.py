@@ -62,14 +62,15 @@ def show_distribution(data: np.ndarray, labels: np.ndarray):
     pyplot.show()
 
 
-def get_model() -> OneClassSVM:
+def get_model(create_new: bool = False) -> OneClassSVM:
     """
     If existing model exists,then it is loaded in. Otherwise a new model is created
 
+    :param create_new: creates new model if True. Otherwise, tries to load model if one exists
     :return: The model used to classify
     """
-    filename = 'occ_model.sav'
-    if path.exists(filename):
+    filename = 'trained_models/occ_model.sav'
+    if path.exists(filename) and not create_new:
         return pickle.load(open(filename, 'rb'))
     else:
         # Define outlier detection model
@@ -129,7 +130,7 @@ def train(model: OneClassSVM, train_data: np.ndarray) -> OneClassSVM:
     """
     # Fit on majority class
     model.fit(train_data)
-    filename = 'occ_model.sav'
+    filename = 'trained_models/occ_model.sav'
     pickle.dump(model, open(filename, 'wb'))
     return model
 
@@ -176,34 +177,6 @@ def run():
 
     # Find the accuracy of the model
     accuracy = predict(model, test_data, test_labels)
-
-# def run():
-#     data = extract_and_normalize()
-#     classes = extract_class_names()
-#     convert_to_pandas(data, classes)
-#
-#
-# def extract_and_normalize():
-#     file_paths = librosa.util.find_files("OCCFiles/", ext=['wav'])
-#     files = np.empty([6, 501, 809])
-#     for path in file_paths:
-#         time_series, sampling_rate = librosa.load(path, sr=48000)  # Makes floating point time series
-#         files += librosa.feature.mfcc(time_series, sampling_rate)
-#     return librosa.util.normalize(files)
-#
-#
-# def extract_class_names():
-#     classes = []
-#     with open('class.csv', 'r') as file:
-#         reader = csv.reader(file)
-#         for row in reader:
-#             if len(row) >= 2 and row[1] not in classes:
-#                 classes.append(row[1])
-#     return classes
-#
-#
-# def convert_to_pandas(data: np.ndarray, classes: list):
-#     data_frame = {'data': data, 'label': classes[0]}
 
 
 if __name__ == '__main__':
