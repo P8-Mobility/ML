@@ -1,3 +1,4 @@
+import configparser
 import numpy as np
 import pickle
 import audio
@@ -6,18 +7,31 @@ import transformer
 from collections import Counter
 from matplotlib import pyplot
 from numpy import where
-from os import path, listdir
+from os import path, listdir, getcwd
 from sklearn.metrics import f1_score, accuracy_score
 from sklearn.svm import OneClassSVM
 
 
-def load_files() -> (list[audio.Audio], float):
+def load_config():
+    base_folder = path.dirname(path.abspath(__file__))
+    config_file = "config.cnf"
+    if not path.exists(config_file) or not path.isfile(config_file):
+        print(f"Config file missing... Path should be {getcwd()}/config.cfg")
+        return
+
+    config = configparser.ConfigParser()
+    config.read(path.join(base_folder, config_file))
+    return config
+
+
+def load_files(config: configparser) -> (list[audio.Audio], float):
     """
     Creates an audio object for each file in the folder
 
+    :param config: config file
     :return: a list of audio objects
     """
-    path = "OCCFiles/"
+    path = config.get('OCC','Filepath', fallback='OCCFiles') + '/'
     files = []
     duration_list = []
 
@@ -54,14 +68,15 @@ def show_distribution(data: np.ndarray, labels: np.ndarray):
     pyplot.show()
 
 
-def get_model(create_new: bool = False) -> OneClassSVM:
+def get_model(config: configparser, create_new: bool = False) -> OneClassSVM:
     """
     If existing model exists,then it is loaded in. Otherwise a new model is created
 
+    :param config: config file
     :param create_new: creates new model if True. Otherwise, tries to load model if one exists
     :return: The model used to classify
     """
-    filename = 'trained_models/occ_model.sav'
+    filename = config.get('OCC', 'ModelPath', fallback='trained_models/occ_model.sav')
     if path.exists(filename) and not create_new:
         return pickle.load(open(filename, 'rb'))
     else:
@@ -89,12 +104,8 @@ def split(audio_files: list[audio.Audio], subject: str = None) -> [np.ndarray, n
         else:
             train_files.append(file)
 
-    train_labels = np.empty(len(train_files))
-    test_labels = np.empty(len(test_files))
-    train_labels.fill(0)
-    test_labels.fill(0)
-
-    return convert_audio_to_np(train_files), convert_audio_to_np(test_files), train_labels, test_labels
+    return convert_audio_to_np(train_files), convert_audio_to_np(test_files), fill_labels(train_files), \
+           fill_labels(test_files)
 
 
 def convert_audio_to_np(audio_files: list[audio.Audio]) -> np.ndarray:
@@ -112,17 +123,33 @@ def convert_audio_to_np(audio_files: list[audio.Audio]) -> np.ndarray:
     return np_array
 
 
-def train(model: OneClassSVM, train_data: np.ndarray) -> OneClassSVM:
+def fill_labels(files: list[audio.Audio]) -> np.ndarray:
+    """
+    Fills numpy array with the correct labels based on the files
+
+    :param files: audio files used to create labels based on
+    :return: numpy array with labels
+    """
+    labels = np.empty(len(files))
+    labels.fill(0)
+    for index in range(len(files)):
+        if files[index].is_wrong():
+            labels[index] = 1
+    return labels
+
+
+def train(model: OneClassSVM, train_data: np.ndarray, config: configparser) -> OneClassSVM:
     """
     Trains the model based on the training data. Only one label, so there is no need to use the labels
 
     :param model: the model to be trained
     :param train_data: a numpy array with data the model is trained with
+    :param config: config file
     :return: the trained model
     """
     # Fit on majority class
     model.fit(train_data)
-    filename = 'trained_models/occ_model.sav'
+    filename = config.get('OCC', 'ModelPath', fallback='trained_models/occ_model.sav')
     pickle.dump(model, open(filename, 'wb'))
     return model
 
@@ -153,19 +180,20 @@ def predict(model: OneClassSVM, test_data: np.ndarray, test_labels: np.ndarray) 
 
 
 def run():
-    files, avg_duration = load_files()
+    config = load_config()
+    files, avg_duration = load_files(config)
     files = preprocess_files(files, avg_duration)
 
     # Split data set into train and test data
-    train_data, test_data, train_labels, test_labels = split(files)
+    train_data, test_data, train_labels, test_labels = split(files, '9VodMjP4kv')
 
     # show_distribution(data, labels)
 
     # Create or load a model
-    model = get_model()
+    model = get_model(config)
 
     # Train the model
-    train(model, train_data)
+    train(model, train_data, config)
 
     # Find the accuracy of the model
     accuracy = predict(model, test_data, test_labels)

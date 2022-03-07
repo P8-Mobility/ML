@@ -35,6 +35,9 @@ class Audio:
     def get_id(self):
         return self.filename.split('-')[-1].split('.')[0]
 
+    def is_wrong(self):
+        return 'wrong' in self.filename
+
     def get_duration(self):
         return librosa.get_duration(y=self.time_series, sr=self.sampling_rate)
 
