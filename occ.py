@@ -1,6 +1,7 @@
 import configparser
 import numpy as np
 import pickle
+import logging
 
 from collections import Counter
 from matplotlib import pyplot
@@ -62,6 +63,9 @@ def get_model(config: configparser, create_new: bool = False) -> OneClassSVM:
     :return: The model used to classify
     """
     filename = config.get('OCC', 'ModelPath', fallback='trained_models/occ_model.sav')
+
+    logging.info(f'Name of model: {filename.split("/")[-1]}')
+
     if path.exists(filename) and not create_new:
         return pickle.load(open(filename, 'rb'))
     else:
@@ -90,6 +94,8 @@ def split(audio_files: list[Audio], subject: str = None) -> [np.ndarray, np.ndar
             train_files.append(file)
 
     train_files = filter_wrong(train_files)
+
+    logging.info(f'Number of train examples: {len(train_files)}. Number of test examples: {len(test_files)}')
 
     return convert_audio_to_np(train_files), convert_audio_to_np(test_files), fill_labels(train_files), \
            fill_labels(test_files)
@@ -172,17 +178,23 @@ def predict(model: OneClassSVM, test_data: np.ndarray, test_labels: np.ndarray) 
     f1 = f1_score(test_labels, predicted_labels, pos_label=1)
     print('Accuracy score: %.3f' % accuracy)
     print('F1 Score: %.3f' % f1)
+
+    logging.info(f'Accuracy: {accuracy}\n')
+
     return accuracy
 
 
 def run():
+    logging.basicConfig(
+        filename='accuracies.log',
+        format='%(asctime)s: %(message)s',
+        level=logging.INFO
+    )
     config = load_config()
     files = load_files()
 
     # Split data set into train and other data
-    train_data, test_data, train_labels, test_labels = split(files, 'Viy3lDCn8e')
-
-    # show_distribution(data, labels)
+    train_data, test_data, train_labels, test_labels = split(files, '3ElCNtHBZH')
 
     # Create or load a model
     model = get_model(config, True)
