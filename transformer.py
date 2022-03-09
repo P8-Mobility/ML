@@ -1,8 +1,4 @@
-import copy
-import os
 import librosa
-from matplotlib import pyplot as plt
-from scipy.io import wavfile
 from audio import Audio
 import numpy as np
 import librosa.display
@@ -25,7 +21,8 @@ def stft(audio: Audio, window_size=100, hop_length=100):
 
 def mfccs(audio: Audio):
     data = np.array(audio.time_series, dtype=np.float32)
-    return librosa.feature.mfcc(y=data, sr=audio.get_sampling_rate)
+    mfccs_features = librosa.feature.mfcc(y=data, sr=audio.get_sampling_rate)
+    audio.features = np.mean(mfccs_features.T, axis=0)
 
 
 def chroma_stft(audio: Audio):

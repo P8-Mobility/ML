@@ -6,7 +6,7 @@ import logging
 from collections import Counter
 from matplotlib import pyplot
 from numpy import where
-from os import path, getcwd
+from os import path, getcwd, listdir
 from sklearn.metrics import f1_score, accuracy_score
 from sklearn.svm import OneClassSVM
 from audio import Audio
@@ -83,12 +83,6 @@ class OCC:
         self.__config = load_config()
         self.__model = self.__get_model()
 
-        logging.basicConfig(
-            filename='accuracies.log',
-            format='%(asctime)s: %(message)s',
-            level=logging.INFO
-        )
-
     def __load_files(self) -> list[Audio]:
         """
         Creates an audio object for each file in the folder
@@ -97,11 +91,9 @@ class OCC:
         """
         loader = DataLoader()
         loader.add_folder_to_model(self.__config.get('OCC', 'DataPath'))
-        loader.fit()
+        loader.fit(False)
 
-        audio_files = loader.get_data_files()
-
-        return audio_files
+        return loader.get_data_files()
 
     def __get_model(self, create_new: bool = False) -> OneClassSVM:
         """
@@ -204,7 +196,38 @@ class OCC:
         # Find the accuracy of the model
         return self.predict(test_data, test_labels)
 
+    def multi_run(self):
+        files = self.__load_files()
+
+        subjects = []
+        for file in files:
+            if file.get_id not in subjects:
+                subjects.append(file.get_id)
+
+        accuracies = []
+        for subject in subjects:
+            logging.info(f'Subject: {subject}')
+            self.__model = self.__get_model(True)
+
+            # Split data set into train and other data
+            train_data, test_data, train_labels, test_labels = self.__split(files, subject)
+
+            # Train the model
+            self.__train(train_data)
+
+            # Find the accuracy of the model
+            accuracies.append(self.predict(test_data, test_labels))
+
+        logging.info(f'Average accuracy: {sum(accuracies)/len(accuracies)}')
+
 
 if __name__ == '__main__':
-    occ = OCC(False)
-    occ.run()
+    logging.basicConfig(
+        filename='occAccuracies.log',
+        format='%(asctime)s: %(message)s',
+        level=logging.INFO
+    )
+
+    occ = OCC(True)
+    occ.multi_run()
+

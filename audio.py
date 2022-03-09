@@ -22,6 +22,7 @@ class Audio:
         self.__sampling_rate = sampling_rate
         self.__original_duration = self.get_duration()
         self.__original_time_series = time_series
+        self.features = np.ndarray
 
     @property
     def get_filename(self):

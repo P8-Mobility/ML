@@ -1,3 +1,3 @@
 [OCC]
-ModelPath=trained_models/occ_model_3ElCNtHBZH.sav
+ModelPath=trained_models/occ_model_overridden.sav
 DataPath=data/train
