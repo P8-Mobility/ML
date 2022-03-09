@@ -1,11 +1,11 @@
-from allosaurus.am.utils import *
+from allosaurus.allosaurus.am.utils import *
 from pathlib import Path
-from allosaurus.audio import read_audio
-from allosaurus.pm.factory import read_pm
-from allosaurus.am.factory import read_am
-from allosaurus.lm.factory import read_lm
-from allosaurus.bin.download_model import download_model
-from allosaurus.model import resolve_model_name, get_all_models
+import allosaurus.allosaurus.audio
+from allosaurus.allosaurus.pm.factory import read_pm
+from allosaurus.allosaurus.am.factory import read_am
+from allosaurus.allosaurus.lm.factory import read_lm
+from allosaurus.allosaurus.bin.download_model import download_model
+from allosaurus.allosaurus.model import resolve_model_name, get_all_models
 from argparse import Namespace
 from io import BytesIO
 
@@ -60,18 +60,18 @@ class Recognizer:
 
         return self.lm.inventory.is_available(lang_id)
 
-    def recognize(self, filename, lang_id='ipa', topk=1, emit=1.0, timestamp=False):
-        # recognize a single file
-
-        # filename check (skipping for BytesIO objects)
-        if not isinstance(filename, BytesIO):
-            assert str(filename).endswith('.wav'), "only wave file is supported in allosaurus"
-
-        # load wav audio
-        audio = read_audio(filename)
+    def recognize(self, aud, lang_id='ipa', topk=1, emit=1.0, timestamp=False):
+        # # recognize a single file
+        #
+        # # filename check (skipping for BytesIO objects)
+        # if not isinstance(filename, BytesIO):
+        #     assert str(filename).endswith('.wav'), "only wave file is supported in allosaurus"
+        #
+        # # load wav audio
+        # aud = allosaurus.allosaurus.audio.read_audio(filename)
 
         # extract feature
-        feat = self.pm.compute(audio)
+        feat = self.pm.compute(aud)
 
         # add batch dim
         feats = np.expand_dims(feat, 0)
