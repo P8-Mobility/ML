@@ -1,8 +1,6 @@
 import configparser
 import numpy as np
 import pickle
-import audio
-import transformer
 
 from collections import Counter
 from matplotlib import pyplot
@@ -10,6 +8,8 @@ from numpy import where
 from os import path, listdir, getcwd
 from sklearn.metrics import f1_score, accuracy_score
 from sklearn.svm import OneClassSVM
+from audio import Audio
+from data_loader import DataLoader
 
 
 def load_config():
@@ -24,35 +24,20 @@ def load_config():
     return config
 
 
-def load_files(config: configparser) -> (list[audio.Audio], float):
+def load_files() -> list[Audio]:
     """
     Creates an audio object for each file in the folder
 
     :param config: config file
     :return: a list of audio objects
     """
-    path = config.get('OCC','Filepath', fallback='OCCFiles') + '/'
-    files = []
-    duration_list = []
+    loader = DataLoader()
+    loader.add_folder_to_model("data/train")
+    loader.fit()
 
-    for file in listdir(path):
-        file = audio.load(path + file)
-        files.append(file)
-        duration_list.append(file.get_duration())
+    audio_files = loader.get_data_files()
 
-    avg_duration = sum(duration_list) / len(duration_list)
-
-    return files, avg_duration
-
-
-def preprocess_files(files: list[audio.Audio], avg_duration: float) -> list[audio.Audio]:
-    for file in files:
-        transformer.normalize(file)
-        transformer.remove_noice(file)
-        transformer.trim(file)
-        transformer.stretch_to_same_time(file, avg_duration)
-
-    return files
+    return audio_files
 
 
 def show_distribution(data: np.ndarray, labels: np.ndarray):
@@ -84,31 +69,42 @@ def get_model(config: configparser, create_new: bool = False) -> OneClassSVM:
         return OneClassSVM(gamma='scale', nu=0.01)
 
 
-def split(audio_files: list[audio.Audio], subject: str = None) -> [np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+def split(audio_files: list[Audio], subject: str = None) -> [np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
     Splits the set into two chunks by leaving one subject out
 
     :param audio_files: the audio files to be split
-    :param subject: The subject that contains the test data
-    :return: the two train and test sets, as well as their labels
+    :param subject: The subject that contains the other data
+    :return: the two train and other sets, as well as their labels
     """
     train_files = []
     test_files = []
 
     if subject is None:
-        subject = audio_files[0].get_id()
+        subject = audio_files[0].get_id
 
     for file in audio_files:
-        if file.get_id() == subject:
+        if file.get_id == subject:
             test_files.append(file)
         else:
             train_files.append(file)
+
+    train_files = filter_wrong(train_files)
 
     return convert_audio_to_np(train_files), convert_audio_to_np(test_files), fill_labels(train_files), \
            fill_labels(test_files)
 
 
-def convert_audio_to_np(audio_files: list[audio.Audio]) -> np.ndarray:
+def filter_wrong(audio_files: list[Audio]) -> list[Audio]:
+    files = []
+    for file in audio_files:
+        if not file.is_wrong:
+            files.append(file)
+
+    return files
+
+
+def convert_audio_to_np(audio_files: list[Audio]) -> np.ndarray:
     """
     Converts a list of Audio objects to a numpy array of time series
 
@@ -123,7 +119,7 @@ def convert_audio_to_np(audio_files: list[audio.Audio]) -> np.ndarray:
     return np_array
 
 
-def fill_labels(files: list[audio.Audio]) -> np.ndarray:
+def fill_labels(files: list[Audio]) -> np.ndarray:
     """
     Fills numpy array with the correct labels based on the files
 
@@ -133,7 +129,7 @@ def fill_labels(files: list[audio.Audio]) -> np.ndarray:
     labels = np.empty(len(files))
     labels.fill(0)
     for index in range(len(files)):
-        if files[index].is_wrong():
+        if files[index].is_wrong:
             labels[index] = 1
     return labels
 
@@ -156,14 +152,14 @@ def train(model: OneClassSVM, train_data: np.ndarray, config: configparser) -> O
 
 def predict(model: OneClassSVM, test_data: np.ndarray, test_labels: np.ndarray) -> float:
     """
-    Finds the accuracy of the model based on the test set
+    Finds the accuracy of the model based on the other set
 
     :param model: the model that is being tested
-    :param test_data: the test data
-    :param test_labels: the labels of the test data
+    :param test_data: the other data
+    :param test_labels: the labels of the other data
     :return: the accuracy
     """
-    # Detect outliers in the test set
+    # Detect outliers in the other set
     # Outputs +1 for normal examples, so-called inliers, and -1 for outliers.
     predicted_labels = model.predict(test_data)
 
@@ -181,16 +177,15 @@ def predict(model: OneClassSVM, test_data: np.ndarray, test_labels: np.ndarray) 
 
 def run():
     config = load_config()
-    files, avg_duration = load_files(config)
-    files = preprocess_files(files, avg_duration)
+    files = load_files()
 
-    # Split data set into train and test data
-    train_data, test_data, train_labels, test_labels = split(files, '9VodMjP4kv')
+    # Split data set into train and other data
+    train_data, test_data, train_labels, test_labels = split(files, 'Viy3lDCn8e')
 
     # show_distribution(data, labels)
 
     # Create or load a model
-    model = get_model(config)
+    model = get_model(config, True)
 
     # Train the model
     train(model, train_data, config)

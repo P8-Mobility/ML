@@ -1,6 +1,7 @@
 import librosa
 import os.path
 import scipy.io.wavfile
+import numpy as np
 
 
 def load(path):
@@ -14,32 +15,42 @@ def load(path):
 class Audio:
     def __init__(self, path, time_series, sampling_rate):
         folder, filename = os.path.split(path)
-        self.folder = folder
-        self.path = path
-        self.filename = filename
+        self.__folder = folder
+        self.__path = path
+        self.__filename = filename
         self.time_series = time_series
-        self.sampling_rate = sampling_rate
+        self.__sampling_rate = sampling_rate
+        self.__original_duration = self.get_duration()
+        self.__original_time_series = time_series
 
     @property
     def get_filename(self):
-        return self.filename
+        return self.__filename
 
     @property
     def get_path(self):
-        return self.path
+        return self.__path
 
     @property
     def get_sampling_rate(self):
-        return self.sampling_rate
+        return self.__sampling_rate
 
+    @property
     def get_id(self):
-        return self.filename.split('-')[-1].split('.')[0]
+        return self.__filename.split('-')[-1].split('.')[0]
 
+    @property
     def is_wrong(self):
-        return 'wrong' in self.filename
+        return 'wrong' in self.__filename
 
     def get_duration(self):
-        return librosa.get_duration(y=self.time_series, sr=self.sampling_rate)
+        return librosa.get_duration(y=self.time_series, sr=self.__sampling_rate)
+
+    def get_orignial_time_series(self):
+        return self.__original_time_series
+
+    def get_original_duration(self):
+        return self.__original_duration
 
     def __hash__(self):
         return hash(self.time_series)
@@ -50,4 +61,23 @@ class Audio:
         return NotImplemented
 
     def save(self, filename):
-        scipy.io.wavfile.write(self.folder+"/"+filename, self.sampling_rate, self.time_series)
+        data = np.array(self.time_series, dtype=np.float32)
+        scipy.io.wavfile.write(self.__folder+"/"+filename, self.__sampling_rate, data)
+
+    def mel_spectrogram(self):
+        data = np.array(self.time_series, dtype=np.float32)
+        D = np.abs(librosa.stft(data)) ** 2
+        S = librosa.feature.melspectrogram(S=D, sr=self.get_sampling_rate)
+        return S
+
+    def stft(self, window_size=100, hop_length=100):
+        window = np.hanning(window_size)
+        stft_out = librosa.core.spectrum.stft(self.time_series, n_fft=window_size, hop_length=hop_length, window=window)
+        out = 2 * np.abs(stft_out) / np.sum(window)
+        return out
+
+    def mfccs(self):
+        data = np.array(self.time_series, dtype=np.float32)
+        return librosa.feature.mfcc(y=data, sr=self.get_sampling_rate)
+
+

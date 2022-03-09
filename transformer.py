@@ -1,9 +1,12 @@
+import copy
+import os
 import librosa
+from matplotlib import pyplot as plt
+from scipy.io import wavfile
 from audio import Audio
 import numpy as np
 import librosa.display
 from numpy import dot
-
 from numpy.linalg import norm
 import noisereduce as nr
 
@@ -16,8 +19,13 @@ def stft(audio: Audio, window_size=100, hop_length=100):
     window = np.hanning(window_size)
     stft_out = librosa.core.spectrum.stft(audio.time_series, n_fft=window_size, hop_length=hop_length, window=window)
     out = 2 * np.abs(stft_out) / np.sum(window)
-    # librosa.display.specshow(librosa.amplitude_to_db(out, ref=np.max), y_axis='log', x_axis='time', sr=audio.get_sampling_rate)
+    #librosa.display.specshow(librosa.amplitude_to_db(out, ref=np.max), y_axis='log', x_axis='time', sr=audio.get_sampling_rate)
     return out # librosa.amplitude_to_db(out, ref=np.max)
+
+
+def mfccs(audio: Audio):
+    data = np.array(audio.time_series, dtype=np.float32)
+    return librosa.feature.mfcc(y=data, sr=audio.get_sampling_rate)
 
 
 def chroma_stft(audio: Audio):
@@ -35,7 +43,21 @@ def normalize(audio: Audio):
 
 
 def cos_similarity(vector1, vector2):
-    return dot(vector1, vector2) / (norm(vector1) * norm(vector2))
+    v1_len = len(vector1)
+    v2_len = len(vector2)
+
+    if v1_len != v2_len:
+        return None
+
+    if v1_len > 0 and isinstance(vector1[0], list):
+        sum_of_similarity = 0
+
+        for i in range(v1_len):
+            sum_of_similarity += dot(vector1[i], vector2[i]) / (norm(vector1[i]) * norm(vector2[i]))
+
+        return sum_of_similarity / v1_len
+    else:
+        return dot(vector1, vector2) / (norm(vector1) * norm(vector2))
 
 
 def remove_noice(audio: Audio):
@@ -50,13 +72,11 @@ def stretch_to_same_time(audio1: Audio, audio2: Audio):
     audio2.time_series = librosa.effects.time_stretch(audio2.time_series, rate=audio2_duration / avg)
 
 
-def stretch_to_same_time(audio1: Audio, avg: float):
-    audio1_duration = audio1.get_duration()
-    audio1.time_series = librosa.effects.time_stretch(audio1.time_series, rate=audio1_duration / avg)
-
-
 def melspectrogram(audio: Audio):
-    D = np.abs(librosa.stft(audio.time_series)) ** 2
+    data = np.array(audio.time_series, dtype=np.float32)
+    D = np.abs(librosa.stft(data)) ** 2
     S = librosa.feature.melspectrogram(S=D, sr=audio.get_sampling_rate)
     #mel_sgram = librosa.amplitude_to_db(S, ref=np.min)
     return S
+
+
