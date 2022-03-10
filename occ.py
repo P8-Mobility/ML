@@ -14,6 +14,11 @@ from data_loader import DataLoader
 
 
 def load_config():
+    """
+    Loads the configuration file
+
+    :return: a configuration parser
+    """
     base_folder = path.dirname(path.abspath(__file__))
     config_file = "config.cnf"
     if not path.exists(config_file) or not path.isfile(config_file):
@@ -56,6 +61,12 @@ def fill_labels(files: list[Audio]) -> np.ndarray:
 
 
 def filter_wrong(audio_files: list[Audio]) -> list[Audio]:
+    """
+    Filters away any files that is not of the 'pære' class
+
+    :param audio_files: the files to be filtered
+    :return: a filtered list of audio files
+    """
     files = []
     for file in audio_files:
         if not file.is_wrong:
@@ -83,15 +94,16 @@ class OCC:
         self.__config = load_config()
         self.__model = self.__get_model()
 
-    def __load_files(self) -> list[Audio]:
+    def __load_files(self, with_mfcc: bool) -> list[Audio]:
         """
         Creates an audio object for each file in the folder
 
+        :param with_mfcc: True if the OCC model uses extracted features. Otherwise, False
         :return: a list of audio objects
         """
         loader = DataLoader()
         loader.add_folder_to_model(self.__config.get('OCC', 'DataPath'))
-        loader.fit(False)
+        loader.fit(with_mfcc)
 
         return loader.get_data_files()
 
@@ -119,7 +131,7 @@ class OCC:
 
         :param audio_files: the audio files to be split
         :param subject: The subject that contains the other data
-        :return: the two train and other sets, as well as their labels
+        :return: the train and test sets, as well as their labels
         """
         train_files = []
         test_files = []
@@ -179,13 +191,14 @@ class OCC:
 
         return accuracy
 
-    def run(self) -> float:
+    def run(self, with_mfcc: bool = False) -> float:
         """
         Default control function that trains on files specified in config and provides accuracy of the model
 
+        :param with_mfcc: True if the OCC model uses extracted features. Otherwise, False
         :return: the model's accuracy
         """
-        files = self.__load_files()
+        files = self.__load_files(with_mfcc)
 
         # Split data set into train and other data
         train_data, test_data, train_labels, test_labels = self.__split(files, '3ElCNtHBZH')
@@ -196,8 +209,13 @@ class OCC:
         # Find the accuracy of the model
         return self.predict(test_data, test_labels)
 
-    def multi_run(self):
-        files = self.__load_files()
+    def multi_run(self, with_mfcc: bool = False):
+        """
+        Runs OCC with test examples from each subject and logs the result
+
+        :param with_mfcc: True if the OCC model uses extracted features. Otherwise, False
+        """
+        files = self.__load_files(with_mfcc)
 
         subjects = []
         for file in files:
@@ -228,6 +246,6 @@ if __name__ == '__main__':
         level=logging.INFO
     )
 
-    occ = OCC(True)
-    occ.multi_run()
+    occ = OCC(False)
+    occ.run()
 
