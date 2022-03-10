@@ -1,7 +1,14 @@
+import logging
+
 from occ import OCC
 
 
 def main():
+    logging.basicConfig(
+        filename='occAccuracies.log',
+        format='%(asctime)s: %(message)s',
+        level=logging.INFO
+    )
     occ = OCC(False)
     occ.run()
     return
