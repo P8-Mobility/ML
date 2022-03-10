@@ -15,7 +15,9 @@ def main():
         aud = allosaurus.allosaurus.audio.Audio(
             file.time_series,
             file.get_sampling_rate)
-        print(file.get_filename + ": " + model.recognize(aud))
+        res: str = model.recognize(aud)
+        print(file.get_filename + ": " + res.replace(' ', '') == "ˈpεːʌ")
+
     # print(model.recognize('files/bære_1.wav'))
 
     return
