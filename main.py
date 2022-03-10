@@ -1,10 +1,8 @@
-import matplotlib.pyplot as plt
-from matplotlib import image as mpimg
-
-import occ
+from occ import OCC
 
 
 def main():
+    occ = OCC(False)
     occ.run()
     return
 
