@@ -103,7 +103,7 @@ class OCC:
         :return: a list of audio objects
         """
         loader = DataLoader()
-        loader.change_setting("scale_length", False)
+        loader.change_setting("scale_length", True)
         loader.change_setting("mfcc", with_mfcc)
         loader.add_folder_to_model(self.__config.get('OCC', 'DataPath'))
         loader.fit()
@@ -130,22 +130,27 @@ class OCC:
             # Define outlier detection model
             return OneClassSVM(gamma='scale', nu=0.01)
 
-    def __split(self, audio_files: list[Audio], subject: str = None) -> [np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    def __split(self, audio_files: list[Audio], subjects: list[str] = None) -> [np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         """
         Splits the set into two chunks by leaving one subject out
 
         :param audio_files: the audio files to be split
-        :param subject: The subject that contains the other data
+        :param subjects: The subjects that contains the other data
         :return: the train and test sets, as well as their labels
         """
         train_files = []
         test_files = []
 
-        if subject is None:
-            subject = audio_files[0].get_id
+        if subjects is None:
+            subjects = [audio_files[0].get_id]
+        elif "9VodMjP4kv" in subjects:
+            subjects.append("GP4eRIePfV")
+        elif "GP4eRIePfV" in subjects:
+            return None, None, None, None
 
+        logging.info(f'Subject: {subjects}')
         for file in audio_files:
-            if file.get_id == subject:
+            if file.get_id in subjects:
                 test_files.append(file)
             else:
                 train_files.append(file)
@@ -206,7 +211,9 @@ class OCC:
         files = self.__load_files(with_mfcc)
 
         # Split data set into train and other data
-        train_data, test_data, train_labels, test_labels = self.__split(files, '9VodMjP4kv')
+        train_data, test_data, train_labels, test_labels = self.__split(files, ['9VodMjP4kv'])
+        if train_data is None:
+            return 0
 
         # Train the model
         self.__train(train_data)
@@ -229,11 +236,12 @@ class OCC:
 
         accuracies = []
         for subject in subjects:
-            logging.info(f'Subject: {subject}')
             self.__model = self.__get_model(True)
 
             # Split data set into train and other data
-            train_data, test_data, train_labels, test_labels = self.__split(files, subject)
+            train_data, test_data, train_labels, test_labels = self.__split(files, [subject])
+            if train_data is None:
+                continue
 
             # Train the model
             self.__train(train_data)

@@ -41,8 +41,14 @@ class Audio:
         return self.__filename.split('-')[2].split('.')[0]
 
     @property
+    def contains_paere(self):
+        return "pære" in self.__filename or "paere" in self.__filename
+
+    @property
     def is_wrong(self):
-        return 'wrong' in self.__filename or self.__filename.split('-')[-1].split('.')[0] != self.get_id
+        return ('wrong' in self.__filename or
+                (self.__filename.split('-')[-1].split('.')[0] != self.get_id and
+                 not self.contains_paere))
 
     def get_duration(self):
         return librosa.get_duration(y=self.time_series, sr=self.__sampling_rate)

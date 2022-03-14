@@ -1,4 +1,4 @@
 [OCC]
 ModelPath=trained_models/occ_model_SGD_overridden.sav
-DataPath=data/train
+DataPath=data/cleaned-data-2021-03-14
 SGDType=True
