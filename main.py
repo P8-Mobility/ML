@@ -9,9 +9,9 @@ def main():
         level=logging.INFO
     )
     loader = DataLoader()
-    loader.add_folder_to_model("data/train")
+    loader.add_folder_to_model("data/cleaned-data-2021-03-14")
     loader.fit()
-    loader.save_files("processed")
+    loader.store_processed_files()
 
     return
 

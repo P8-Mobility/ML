@@ -1,4 +1,6 @@
 import os
+from pandas import pd
+
 import librosa
 from processing import audio, transformer
 from processing.audio import Audio
@@ -52,17 +54,15 @@ class DataLoader:
     def get_data_files(self):
         return self.__data
 
-    # def get_dataframe(self):
-    #     file_names = []
-    #     time_series = {}
-    #
-    #     for audio_file in self.__data:
-    #         file_names.append(audio_file.get_filename)
-    #         for i in range(len(audio_file.time_series)):
-    #             time_series[i] = audio_file.time_series[i]
-    #
-    #     pdo = pd.DataFrame({"filename": file_names})
-    #     return pdo.append(time_series, ignore_index=True)
+    def get_as_dataframe(self) -> pd.DataFrame:
+        file_names = []
+        time_series_data = []
+
+        for audio_file in self.__data:
+            file_names.append(audio_file.get_filename)
+            time_series_data.append(audio_file.time_series)
+
+        return pd.DataFrame({"filename": file_names, "time_series": time_series_data})
 
     def preprocessing(self, audio_file: Audio, with_mfccs: bool):
         audio_file.time_series = librosa.to_mono(audio_file.get_orignial_time_series())
@@ -75,7 +75,7 @@ class DataLoader:
     def scale(self, audio_file: Audio):
         audio_file.time_series = librosa.effects.time_stretch(audio_file.time_series, rate=audio_file.get_duration() / self.__duration_scale)
 
-    def save_files(self, folder_name: str):
-        for data in self.__data:
-            data.save(folder_name + "/" + data.get_filename)
+    def store_processed_files(self):
+        for audio_file in self.__data:
+            audio_file.save("data/processed/"+audio_file.get_filename)
 
