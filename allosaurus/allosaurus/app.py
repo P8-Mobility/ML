@@ -26,7 +26,7 @@ def read_recognizer(inference_config_or_name='latest', alt_model_path=None):
         inference_config = inference_config_or_name
 
     if alt_model_path:
-        model_path = alt_model_path / inference_config.model
+        model_path = alt_model_path
     else:
         model_path = Path(__file__).parent / 'pretrained' / inference_config.model
 

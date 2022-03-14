@@ -1,10 +1,18 @@
 import allosaurus.allosaurus.app as allo
 import allosaurus.allosaurus.audio
 import data_loader
+import fine_tune as ft
+from pathlib import Path
 
 
 def main():
-    model = allo.read_recognizer()
+    ft.fine_tune()
+    recognize()
+    return
+
+
+def recognize():
+    model = allo.read_recognizer(alt_model_path=Path('paereModel'))
 
     loader = data_loader.DataLoader()
     loader.add_folder_to_model('files/')
@@ -16,11 +24,7 @@ def main():
             file.time_series,
             file.get_sampling_rate)
         res: str = model.recognize(aud)
-        print(file.get_filename + ": " + res.replace(' ', '') == "ˈpεːʌ")
-
-    # print(model.recognize('files/bære_1.wav'))
-
-    return
+        print(file.get_filename + ": " + res)
 
 
 if __name__ == "__main__":

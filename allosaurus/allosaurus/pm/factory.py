@@ -9,8 +9,7 @@ def read_pm(model_path, inference_config):
     :param pm_config:
     :return:
     """
-
-    pm_config = Namespace(**json.load(open(str(model_path / 'pm_config.json'))))
+    pm_config = Namespace(**json.load(open('allosaurus/allosaurus/pretrained/' + str(model_path) + '/pm_config.json')))
 
     assert pm_config.model == 'mfcc_hires', 'only mfcc_hires is supported for allosaurus now'
     assert pm_config.backend == 'numpy', 'only numpy backend is supported for allosaurus now'

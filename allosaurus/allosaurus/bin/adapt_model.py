@@ -1,9 +1,9 @@
 import argparse
 from pathlib import Path
-from allosaurus.model import copy_model
-from allosaurus.am.factory import transfer_am
-from allosaurus.am.trainer import Trainer
-from allosaurus.am.loader import read_loader
+from allosaurus.allosaurus.model import copy_model
+from allosaurus.allosaurus.am.factory import transfer_am
+from allosaurus.allosaurus.am.trainer import Trainer
+from allosaurus.allosaurus.am.loader import read_loader
 
 if __name__ == '__main__':
 

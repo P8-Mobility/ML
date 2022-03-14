@@ -1,3 +1,6 @@
 [OCC]
 ModelPath=trained_models/occ_model_overridden.sav
 DataPath=data/train
+
+[allo]
+DataPath = /home/ida/Documents/Uni/P8/Data/

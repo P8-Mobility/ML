@@ -1,4 +1,4 @@
-from allosaurus.pm.kdict import read_matrix
+from allosaurus.allosaurus.pm.kdict import read_matrix
 from pathlib import Path
 from torch.utils.data import Dataset
 import numpy as np

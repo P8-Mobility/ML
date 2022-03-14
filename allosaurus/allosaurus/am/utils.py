@@ -13,9 +13,9 @@ def torch_load(model, path, device_id, unit_mask=None):
     """
 
     if device_id >= 0:
-        model_state_dict = torch.load(str(path),map_location=torch.device(f'cuda:{device_id}'))
+        model_state_dict = torch.load('allosaurus/allosaurus/pretrained/' + str(path),map_location=torch.device(f'cuda:{device_id}'))
     else:
-        model_state_dict = torch.load(str(path), map_location=torch.device('cpu'))
+        model_state_dict = torch.load('allosaurus/allosaurus/pretrained/' + str(path), map_location=torch.device('cpu'))
 
     new_state_dict = OrderedDict()
     for k, v in model_state_dict.items():

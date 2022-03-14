@@ -10,7 +10,7 @@ def read_unit(unit_path):
 
     idx = 0
 
-    for line in open(str(unit_path), 'r', encoding='utf-8'):
+    for line in open('allosaurus/allosaurus/pretrained/' + str(unit_path), 'r', encoding='utf-8'):
         fields = line.strip().split()
 
         assert len(fields) < 3, " each line should contain at most two field separated by space."

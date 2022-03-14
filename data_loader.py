@@ -72,6 +72,7 @@ class DataLoader:
         transformer.trim(audio_file, 20)
         if with_mfccs:
             transformer.mfccs(audio_file)
+        #sf.write(audio_file.get_filename, audio_file.time_series, audio_file.get_sampling_rate)
 
     def scale(self, audio_file: Audio):
         audio_file.time_series = librosa.effects.time_stretch(audio_file.get_orignial_time_series(), rate=audio_file.get_original_duration() / self.__duration_scale)

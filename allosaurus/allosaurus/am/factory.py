@@ -14,7 +14,7 @@ def read_am(model_path, inference_config):
     :return:
     """
 
-    am_config = Namespace(**json.load(open(str(model_path / 'am_config.json'))))
+    am_config = Namespace(**json.load(open('allosaurus/allosaurus/pretrained/' + str(model_path) + '/am_config.json')))
 
     assert am_config.model == 'allosaurus', "This project only support allosaurus model"
 

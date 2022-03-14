@@ -1,11 +1,11 @@
-from allosaurus.app import read_recognizer
-from allosaurus.model import get_all_models, resolve_model_name
-from allosaurus.bin.download_model import download_model
+from allosaurus.allosaurus.app import read_recognizer
+from allosaurus.allosaurus.model import get_all_models, resolve_model_name
+from allosaurus.allosaurus.bin.download_model import download_model
 from pathlib import Path
 import argparse
 
-if __name__ == '__main__':
 
+def main():
     parser = argparse.ArgumentParser('Allosaurus phone recognizer')
     parser.add_argument('-d', '--device_id', type=int, default=-1, help='specify cuda device id to use, -1 means no cuda and will use cpu for inference')
     parser.add_argument('-m', '--model', type=str, default='latest', help='specify which model to use. default is to use the latest local model')
@@ -77,3 +77,5 @@ if __name__ == '__main__':
 
     if output_fd:
         output_fd.close()
+
+

@@ -17,10 +17,10 @@ class Inventory:
         self.inference_config = inference_config
 
         # load all available inventories
-        langs = json.load(open(self.model_path / 'inventory' / 'index.json', 'r', encoding='utf-8'))
+        langs = json.load(open('allosaurus/allosaurus/pretrained/' + str(model_path) + '/inventory/index.json', 'r', encoding='utf-8'))
 
         # load all phones list
-        self.unit = read_unit(str(self.model_path / 'phone.txt'))
+        self.unit = read_unit(str(model_path) + '/phone.txt')
 
         for lang in langs:
 

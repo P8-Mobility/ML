@@ -1,9 +1,9 @@
 import argparse
 from pathlib import Path
-from allosaurus.model import resolve_model_name
-from allosaurus.audio import read_audio
-from allosaurus.pm.factory import read_pm
-from allosaurus.pm.kdict import KaldiWriter
+from allosaurus.allosaurus.model import resolve_model_name
+from allosaurus.allosaurus.audio import read_audio
+from allosaurus.allosaurus.pm.factory import read_pm
+from allosaurus.allosaurus.pm.kdict import KaldiWriter
 from tqdm import tqdm
 
 def prepare_feature(data_path, model):
