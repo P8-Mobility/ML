@@ -16,7 +16,7 @@ def stft(audio: Audio, window_size=100, hop_length=100):
     stft_out = librosa.core.spectrum.stft(audio.time_series, n_fft=window_size, hop_length=hop_length, window=window)
     out = 2 * np.abs(stft_out) / np.sum(window)
     #librosa.display.specshow(librosa.amplitude_to_db(out, ref=np.max), y_axis='log', x_axis='time', sr=audio.get_sampling_rate)
-    return out # librosa.amplitude_to_db(out, ref=np.max)
+    return out  # librosa.amplitude_to_db(out, ref=np.max)
 
 
 def mfccs(audio: Audio):
@@ -57,7 +57,7 @@ def cos_similarity(vector1, vector2):
         return dot(vector1, vector2) / (norm(vector1) * norm(vector2))
 
 
-def remove_noice(audio: Audio):
+def remove_noise(audio: Audio):
     audio.time_series = nr.reduce_noise(y=audio.time_series, sr=audio.get_sampling_rate)
 
 
@@ -75,5 +75,3 @@ def melspectrogram(audio: Audio):
     S = librosa.feature.melspectrogram(S=D, sr=audio.get_sampling_rate)
     #mel_sgram = librosa.amplitude_to_db(S, ref=np.min)
     return S
-
-
