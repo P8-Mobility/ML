@@ -5,7 +5,7 @@ from occ import OCC
 
 def main():
     logging.basicConfig(
-        filename='occAccuracies.log',
+        filename='occAccuracies1.log',
         format='%(asctime)s: %(message)s',
         level=logging.INFO
     )

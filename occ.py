@@ -9,6 +9,7 @@ from numpy import where
 from os import path, getcwd, listdir
 from sklearn.metrics import f1_score, accuracy_score
 from sklearn.svm import OneClassSVM
+from sklearn.linear_model import SGDOneClassSVM
 from audio import Audio
 from data_loader import DataLoader
 
@@ -107,7 +108,7 @@ class OCC:
 
         return loader.get_data_files()
 
-    def __get_model(self, create_new: bool = False) -> OneClassSVM:
+    def __get_model(self, create_new: bool = False) -> (OneClassSVM, SGDOneClassSVM):
         """
         If existing model exists,then it is loaded in. Otherwise a new model is created
 
@@ -121,6 +122,8 @@ class OCC:
 
         if path.exists(filename) and not create_new:
             return pickle.load(open(filename, 'rb'))
+        elif self.__config.getboolean('OCC', 'SGDType', fallback=False):
+            return SGDOneClassSVM(nu=0.01)
         else:
             # Define outlier detection model
             return OneClassSVM(gamma='scale', nu=0.01)
@@ -201,7 +204,7 @@ class OCC:
         files = self.__load_files(with_mfcc)
 
         # Split data set into train and other data
-        train_data, test_data, train_labels, test_labels = self.__split(files, '3ElCNtHBZH')
+        train_data, test_data, train_labels, test_labels = self.__split(files, '9VodMjP4kv')
 
         # Train the model
         self.__train(train_data)
@@ -241,11 +244,11 @@ class OCC:
 
 if __name__ == '__main__':
     logging.basicConfig(
-        filename='occAccuracies.log',
+        filename='SGDOCCFeaturesAccuracies.log',
         format='%(asctime)s: %(message)s',
         level=logging.INFO
     )
 
-    occ = OCC(False)
-    occ.run()
+    occ = OCC(True)
+    occ.multi_run(True)
 

@@ -40,7 +40,7 @@ class DataLoader:
     def fit(self, with_mfccs: bool):
         for audio_file in self.__data:
             self.preprocessing(audio_file, with_mfccs)
-            self.__duration_sum += audio_file.get_original_duration()
+            self.__duration_sum += audio_file.get_duration()
 
         self.__duration_scale = self.__duration_sum / len(self.__data)
 
@@ -66,7 +66,7 @@ class DataLoader:
     #     return pdo.append(time_series, ignore_index=True)
 
     def preprocessing(self, audio_file: Audio, with_mfccs: bool):
-        audio_file.time_series = librosa.to_mono(audio_file.time_series)
+        audio_file.time_series = librosa.to_mono(audio_file.get_orignial_time_series())
         transformer.normalize(audio_file)
         transformer.remove_noice(audio_file)
         transformer.trim(audio_file, 20)
@@ -74,6 +74,6 @@ class DataLoader:
             transformer.mfccs(audio_file)
 
     def scale(self, audio_file: Audio):
-        audio_file.time_series = librosa.effects.time_stretch(audio_file.get_orignial_time_series(), rate=audio_file.get_original_duration() / self.__duration_scale)
+        audio_file.time_series = librosa.effects.time_stretch(audio_file.time_series, rate=audio_file.get_duration() / self.__duration_scale)
 
 
