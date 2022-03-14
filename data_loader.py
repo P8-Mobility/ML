@@ -3,7 +3,7 @@ import librosa
 import audio
 import transformer
 from audio import Audio
-import pandas as pd
+import soundfile as sf
 
 
 class DataLoader:

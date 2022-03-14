@@ -12,6 +12,7 @@ import noisereduce as nr
 
 def convert_audio(audio):
     wav_file = mktemp('.wav')
+    audio = librosa.to_mono(audio)
     audio.export(wav_file, format="wav")  # convert to wav
     return wav_file
 

@@ -1,6 +1,7 @@
 from allosaurus.allosaurus.lm.decoder import PhoneDecoder
 import json
 from argparse import Namespace
+import os
 
 def read_lm(model_path, inference_config):
     """
