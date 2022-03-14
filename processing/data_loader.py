@@ -1,5 +1,8 @@
 import os
+import pandas as pd
+import warnings
 import librosa
+
 from processing import audio, transformer
 from processing.audio import Audio
 
@@ -12,6 +15,7 @@ class DataLoader:
         self.__data = audio_list
         self.__duration_scale = 0
         self.__duration_sum = 0
+        self.__settings = {"trim_threshold": 20, "mfcc": False, "scale_length": True}
 
     def clear(self):
         self.__data.clear()
@@ -21,7 +25,8 @@ class DataLoader:
     def add_folder_to_model(self, path):
         if os.path.isdir(path):
             for filename in os.listdir(path):
-                self.add_file_to_model(path + "/" + filename)
+                if filename.endswith(".wav"):
+                    self.add_file_to_model(path + "/" + filename)
 
     def add_file_to_model(self, path):
         if os.path.isfile(path):
@@ -30,20 +35,22 @@ class DataLoader:
     def load_file(self, path: str):
         if os.path.isfile(path):
             audio_file = audio.load(path)
-            self.preprocessing(audio_file, False)
-            self.scale(audio_file)
+            self.preprocessing(audio_file)
+            if self.__settings.get("scale_length"):
+                self.scale(audio_file)
             return audio_file
         return None
 
-    def fit(self, with_mfccs: bool):
+    def fit(self):
         for audio_file in self.__data:
-            self.preprocessing(audio_file, with_mfccs)
+            self.preprocessing(audio_file)
             self.__duration_sum += audio_file.get_duration()
 
         self.__duration_scale = self.__duration_sum / len(self.__data)
 
-        for audio_file in self.__data:
-            self.scale(audio_file)
+        if self.__settings.get("scale_length"):
+            for audio_file in self.__data:
+                self.scale(audio_file)
 
     def size(self):
         return len(self.__data)
@@ -51,27 +58,34 @@ class DataLoader:
     def get_data_files(self):
         return self.__data
 
-    # def get_dataframe(self):
-    #     file_names = []
-    #     time_series = {}
-    #
-    #     for audio_file in self.__data:
-    #         file_names.append(audio_file.get_filename)
-    #         for i in range(len(audio_file.time_series)):
-    #             time_series[i] = audio_file.time_series[i]
-    #
-    #     pdo = pd.DataFrame({"filename": file_names})
-    #     return pdo.append(time_series, ignore_index=True)
+    def get_as_dataframe(self) -> pd.DataFrame:
+        file_names = []
+        time_series_data = []
 
-    def preprocessing(self, audio_file: Audio, with_mfccs: bool):
+        for audio_file in self.__data:
+            file_names.append(audio_file.get_filename)
+            time_series_data.append(audio_file.time_series)
+
+        return pd.DataFrame({"filename": file_names, "time_series": time_series_data})
+
+    def preprocessing(self, audio_file: Audio):
         audio_file.time_series = librosa.to_mono(audio_file.get_orignial_time_series())
+        transformer.remove_noise(audio_file)
         transformer.normalize(audio_file)
-        transformer.remove_noice(audio_file)
-        transformer.trim(audio_file, 20)
-        if with_mfccs:
+        transformer.trim(audio_file, self.__settings.get("trim_threshold"))
+        if self.__settings.get("mfcc"):
             transformer.mfccs(audio_file)
 
     def scale(self, audio_file: Audio):
         audio_file.time_series = librosa.effects.time_stretch(audio_file.time_series, rate=audio_file.get_duration() / self.__duration_scale)
 
+    def store_processed_files(self):
+        for audio_file in self.__data:
+            audio_file.save("data/processed/"+audio_file.get_filename)
+
+    def change_setting(self, key: str, value: any):
+        if self.__settings.get(key) is None:
+            warnings.warn(f"They key, {key}, was not found in the settings dictionary, so default settings are used.")
+        else:
+            self.__settings[key] = value
 
