@@ -1,9 +1,7 @@
 import os
 import librosa
-import audio
-import transformer
-from audio import Audio
-import pandas as pd
+from processing import audio, transformer
+from processing.audio import Audio
 
 
 class DataLoader:

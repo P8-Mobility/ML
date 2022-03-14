@@ -6,12 +6,12 @@ import logging
 from collections import Counter
 from matplotlib import pyplot
 from numpy import where
-from os import path, getcwd, listdir
+from os import path, getcwd
 from sklearn.metrics import f1_score, accuracy_score
 from sklearn.svm import OneClassSVM
 from sklearn.linear_model import SGDOneClassSVM
-from audio import Audio
-from data_loader import DataLoader
+from processing.audio import Audio
+from processing.data_loader import DataLoader
 
 
 def load_config():

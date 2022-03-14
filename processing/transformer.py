@@ -1,5 +1,5 @@
 import librosa
-from audio import Audio
+from processing.audio import Audio
 import numpy as np
 import librosa.display
 from numpy import dot
