@@ -1,6 +1,5 @@
 import logging
-
-from occ import OCC
+from processing.data_loader import DataLoader
 
 
 def main():
@@ -9,8 +8,11 @@ def main():
         format='%(asctime)s: %(message)s',
         level=logging.INFO
     )
-    occ = OCC(False)
-    occ.run()
+    loader = DataLoader()
+    loader.add_folder_to_model("data/train")
+    loader.fit()
+    loader.save_files("processed")
+
     return
 
 
