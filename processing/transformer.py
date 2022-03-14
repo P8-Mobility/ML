@@ -57,7 +57,7 @@ def cos_similarity(vector1, vector2):
         return dot(vector1, vector2) / (norm(vector1) * norm(vector2))
 
 
-def remove_noice(audio: Audio):
+def remove_noise(audio: Audio):
     audio.time_series = nr.reduce_noise(y=audio.time_series, sr=audio.get_sampling_rate)
 
 
