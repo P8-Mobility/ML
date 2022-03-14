@@ -38,7 +38,7 @@ class Audio:
 
     @property
     def get_id(self):
-        return self.__filename.split('-')[-1].split('.')[0]
+        return self.__filename.split('-')[2].split('.')[0]
 
     @property
     def is_wrong(self):
