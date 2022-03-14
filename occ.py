@@ -252,5 +252,5 @@ if __name__ == '__main__':
     )
 
     occ = OCC(True)
-    occ.multi_run(True)
+    occ.multi_run()
 
