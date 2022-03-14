@@ -103,8 +103,10 @@ class OCC:
         :return: a list of audio objects
         """
         loader = DataLoader()
+        loader.change_setting("scale_length", False)
+        loader.change_setting("mfcc", with_mfcc)
         loader.add_folder_to_model(self.__config.get('OCC', 'DataPath'))
-        loader.fit(with_mfcc)
+        loader.fit()
 
         return loader.get_data_files()
 
