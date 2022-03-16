@@ -1,4 +1,4 @@
-from allosaurus.allosaurus.model import get_all_models
+from allosaurus.model import get_all_models
 
 
 def main():

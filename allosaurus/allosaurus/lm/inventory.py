@@ -1,5 +1,5 @@
 import json
-from allosaurus.allosaurus.lm.mask import *
+from allosaurus.lm.mask import *
 
 
 class Inventory:

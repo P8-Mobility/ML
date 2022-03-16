@@ -1,11 +1,11 @@
-from allosaurus.allosaurus.am.utils import *
+from allosaurus.am.utils import *
 from pathlib import Path
-import allosaurus.allosaurus.audio
-from allosaurus.allosaurus.pm.factory import read_pm
-from allosaurus.allosaurus.am.factory import read_am
-from allosaurus.allosaurus.lm.factory import read_lm
-from allosaurus.allosaurus.bin.download_model import download_model
-from allosaurus.allosaurus.model import resolve_model_name, get_all_models
+import allosaurus.audio
+from allosaurus.pm.factory import read_pm
+from allosaurus.am.factory import read_am
+from allosaurus.lm.factory import read_lm
+from allosaurus.bin.download_model import download_model
+from allosaurus.model import resolve_model_name, get_all_models
 from argparse import Namespace
 from io import BytesIO
 
@@ -68,7 +68,7 @@ class Recognizer:
         #     assert str(filename).endswith('.wav'), "only wave file is supported in allosaurus"
         #
         # # load wav audio
-        # aud = allosaurus.allosaurus.audio.read_audio(filename)
+        # aud = allosaurus.audio.read_audio(filename)
 
         # extract feature
         feat = self.pm.compute(aud)

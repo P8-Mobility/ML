@@ -1,4 +1,4 @@
-from allosaurus.allosaurus.model import get_model_path
+from allosaurus.model import get_model_path
 
 class Reporter:
 

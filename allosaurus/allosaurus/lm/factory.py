@@ -1,4 +1,4 @@
-from allosaurus.allosaurus.lm.decoder import PhoneDecoder
+from allosaurus.lm.decoder import PhoneDecoder
 import json
 from argparse import Namespace
 import os

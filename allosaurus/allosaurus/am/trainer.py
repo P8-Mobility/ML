@@ -1,12 +1,12 @@
-from allosaurus.allosaurus.am.utils import move_to_tensor, torch_save
-from allosaurus.allosaurus.am.criterion import read_criterion
-from allosaurus.allosaurus.am.optimizer import read_optimizer
-from allosaurus.allosaurus.am.reporter import Reporter
+from allosaurus.am.utils import move_to_tensor, torch_save
+from allosaurus.am.criterion import read_criterion
+from allosaurus.am.optimizer import read_optimizer
+from allosaurus.am.reporter import Reporter
 import editdistance
 import numpy as np
 import torch
 from itertools import groupby
-from allosaurus.allosaurus.model import get_model_path
+from allosaurus.model import get_model_path
 import os
 import json
 

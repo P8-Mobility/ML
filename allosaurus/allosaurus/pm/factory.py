@@ -1,4 +1,4 @@
-from allosaurus.allosaurus.pm.mfcc import MFCC
+from allosaurus.pm.mfcc import MFCC
 import json
 from argparse import Namespace
 
