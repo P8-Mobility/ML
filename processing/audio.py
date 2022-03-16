@@ -38,7 +38,7 @@ class Audio:
 
     @property
     def get_id(self):
-        return self.__filename.split('-')[-1].split('.')[0]
+        return self.__filename.split('-')[2].split('.')[0]
 
     @property
     def is_wrong(self):
@@ -61,9 +61,9 @@ class Audio:
             return self.time_series == other.time_series
         return NotImplemented
 
-    def save(self, filename):
+    def save(self, path):
         data = np.array(self.time_series, dtype=np.float32)
-        scipy.io.wavfile.write(self.__folder+"/"+filename, self.__sampling_rate, data)
+        scipy.io.wavfile.write(path, self.__sampling_rate, data)
 
     def mel_spectrogram(self):
         data = np.array(self.time_series, dtype=np.float32)
