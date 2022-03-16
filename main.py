@@ -1,30 +1,35 @@
-import allosaurus.allosaurus.app as allo
-import allosaurus.allosaurus.audio
-import data_loader
+import allosaurus.app as allo
+import allosaurus.audio
 import fine_tune as ft
 from pathlib import Path
+from processing.data_loader import DataLoader
 
 
 def main():
+    # process()
     ft.fine_tune()
-    recognize()
+    # recognize()
     return
 
 
 def recognize():
     model = allo.read_recognizer(alt_model_path=Path('paereModel'))
-
-    loader = data_loader.DataLoader()
-    loader.add_folder_to_model('files/')
-    loader.fit(False)
     files = loader.get_data_files()
 
     for file in files:
-        aud = allosaurus.allosaurus.audio.Audio(
+        aud = allosaurus.audio.Audio(
             file.time_series,
             file.get_sampling_rate)
         res: str = model.recognize(aud)
         print(file.get_filename + ": " + res)
+
+
+def process():
+    loader = DataLoader()
+    loader.change_setting("scale_length", False)
+    loader.add_folder_to_model('data/unprocessed')
+    loader.fit()
+    loader.store_processed_files()
 
 
 if __name__ == "__main__":

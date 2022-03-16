@@ -1,6 +1,6 @@
-import allosaurus.allosaurus.bin.prep_feat as pf
-import allosaurus.allosaurus.bin.prep_token as pt
-import allosaurus.allosaurus.bin.adapt_model as am
+import allosaurus.bin.prep_feat as pf
+import allosaurus.bin.prep_token as pt
+import allosaurus.bin.adapt_model as am
 import configparser
 from pathlib import Path
 from os import path, getcwd
@@ -24,13 +24,13 @@ def fine_tune():
     fp_validate = Path(config.get('allo', 'DataPath') + 'validate')
 
     # Process train data
-    pf.prepare_feature(fp_train, "/uni2005/")
-    pt.prepare_token(fp_train, "/uni2005/", 'dan')
+    pf.prepare_feature(fp_train, "allosaurus/allosaurus/pretrained/uni2005/")
+    pt.prepare_token(fp_train, "allosaurus/allosaurus/pretrained/uni2005/", 'dan')
 
     # Process validate data
-    pf.prepare_feature(fp_validate, "/uni2005/")
-    pt.prepare_token(fp_validate, "/uni2005/", 'dan')
+    pf.prepare_feature(fp_validate, "allosaurus/allosaurus/pretrained/uni2005/")
+    pt.prepare_token(fp_validate, "allosaurus/allosaurus/pretrained/uni2005/", 'dan')
 
     # command to fine_tune your data
-    #python - m allosaurus.allosaurus.bin.adapt_model - -pretrained_model = uni2005 - -new_model = paereModel - -path =<pathParam> - -lang = dan - -device_id = -1 - -epoch = 10
+    #python -m allosaurus.bin.adapt_model --pretrained_model=uni2005 --new_model=paereModel --path=<pathParam> --lang=dan --device_id=-1 --epoch=10
 
