@@ -1,6 +1,5 @@
 import allosaurus.allosaurus.bin.prep_feat as pf
 import allosaurus.allosaurus.bin.prep_token as pt
-import allosaurus.allosaurus.bin.adapt_model as am
 import configparser
 from pathlib import Path
 from os import path, getcwd
@@ -32,5 +31,5 @@ def fine_tune():
     pt.prepare_token(fp_validate, "/uni2005/", 'dan')
 
     # command to fine_tune your data
-    #python - m allosaurus.allosaurus.bin.adapt_model - -pretrained_model = uni2005 - -new_model = paereModel - -path =<pathParam> - -lang = dan - -device_id = -1 - -epoch = 10
+    #python -m allosaurus.allosaurus.bin.adapt_model --pretrained_model=uni2005 --new_model=paereModel --path =<pathToData> --lang=dan --device_id=-1 --epoch=10
 
