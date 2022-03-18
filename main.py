@@ -14,6 +14,9 @@ def main():
 
 def recognize():
     model = allo.read_recognizer(alt_model_path=Path('paereModel'))
+
+    loader = DataLoader()
+    loader.add_folder_to_model('data/processed')
     files = loader.get_data_files()
 
     for file in files:

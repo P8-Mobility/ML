@@ -32,5 +32,4 @@ def fine_tune():
     pt.prepare_token(fp_validate, "allosaurus/allosaurus/pretrained/uni2005/", 'dan')
 
     # command to fine_tune your data
-    #python -m allosaurus.bin.adapt_model --pretrained_model=uni2005 --new_model=paereModel --path=<pathParam> --lang=dan --device_id=-1 --epoch=10
-
+    #python -m /Users/lenasaid/Desktop/ML/allosaurus/allosaurus/bin/adapt_model.py --pretrained_model=uni2005 --new_model=paereModel --path=/Users/lenasaid/Desktop/ML/data/fine_tuning --lang=dan --device_id=-1 --epoch=10
