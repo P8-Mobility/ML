@@ -5,6 +5,8 @@ import shutil
 import zipfile
 import requests
 
+from processing import data_loader
+
 
 def generate(subject_ids: list[str], api_path: str, api_token: str):
     samples_path: str = str(pathlib.Path().resolve()) + "/data/audio_samples/"
@@ -20,8 +22,8 @@ def generate(subject_ids: list[str], api_path: str, api_token: str):
         filename: str = file.split('.', 1)[0]
         identifier: str = filename.split('-')[2].split('.')[0]
 
-        wave_entry: str = filename + " " + samples_path + file
-        text_entry: str = filename + " pʰ æ: ɐ"
+        wave_entry: str = filename + " " + file
+        text_entry: str = filename + " pʰ æː ɐ"
 
         if identifier in subject_ids:
             validate_wave_file_lines.append(wave_entry)
@@ -43,6 +45,11 @@ def generate(subject_ids: list[str], api_path: str, api_token: str):
                                   train_text_file_lines)
     __write_lines_to_files_in_dir(str(pathlib.Path().resolve()) + "/data/validate/", validate_wave_file_lines,
                                   validate_text_file_lines)
+
+    loader = data_loader.DataLoader()
+    loader.add_folder_to_model('data/audio_samples')
+    loader.fit()
+    loader.store_processed_files()
 
     return
 

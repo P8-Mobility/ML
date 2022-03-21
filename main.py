@@ -1,22 +1,23 @@
 import configparser
 import json
 import os
+import pathlib
 
 import allosaurus.allosaurus.app as allo
 import allosaurus.allosaurus.audio
 import data.fine_tune_file_generator
-import processing.data_loader
 import fine_tune as ft
 from pathlib import Path
 from processing import data_loader
 
 
 def main():
-    #ft.fine_tune()
-    # recognize()
     config = __load_config()
     data.fine_tune_file_generator.generate(json.loads(config.get('allo', 'Subjects')), config.get('allo', 'API_Path'),
                                            config.get('allo', 'API_Token'))
+    ft.fine_tune(str(pathlib.Path().resolve()) + "/data/")
+    recognize()
+
     return
 
 
@@ -33,13 +34,13 @@ def __load_config():
 
 
 def recognize():
-    model = allo.read_recognizer(alt_model_path=Path('allosaurus/allosaurus/pretrained/uni2005'))
+    model = allo.read_recognizer(alt_model_path=Path('allosaurus/allosaurus/pretrained/paereModelV2'))
 
     loader = data_loader.DataLoader()
-    loader.change_setting("scale_length", False)
-    loader.add_folder_to_model('data/processed/')
-    loader.fit()
-    #loader.store_processed_files()
+    # loader.change_setting("scale_length", False)
+    loader.add_folder_to_model('data/audio_samples')
+    # loader.fit()
+    # loader.store_processed_files()
     files = loader.get_data_files()
 
     for file in files:

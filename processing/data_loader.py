@@ -15,7 +15,7 @@ class DataLoader:
         self.__data = audio_list
         self.__duration_scale = 0
         self.__duration_sum = 0
-        self.__settings = {"trim_threshold": 20, "mfcc": False, "scale_length": True}
+        self.__settings = {"trim_threshold": 20, "mfcc": False, "scale_length": False}
 
     def clear(self):
         self.__data.clear()
@@ -69,7 +69,6 @@ class DataLoader:
         return pd.DataFrame({"filename": file_names, "time_series": time_series_data})
 
     def preprocessing(self, audio_file: Audio):
-        audio_file.time_series = librosa.to_mono(audio_file.get_orignial_time_series())
         transformer.remove_noise(audio_file)
         transformer.normalize(audio_file)
         transformer.trim(audio_file, self.__settings.get("trim_threshold"))
@@ -81,7 +80,7 @@ class DataLoader:
 
     def store_processed_files(self):
         for audio_file in self.__data:
-            audio_file.save("data/processed/"+audio_file.get_filename)
+            audio_file.save("data/audio_samples/"+audio_file.get_filename)
 
     def change_setting(self, key: str, value: any):
         if self.__settings.get(key) is None:

@@ -6,7 +6,7 @@ import numpy as np
 
 def load(path):
     if os.path.exists(path):
-        time_series, sampling_rate = librosa.load(path, sr=None)
+        time_series, sampling_rate = librosa.load(path, sr=None, dtype=np.int16)
         return Audio(path, time_series, sampling_rate)
     else:
         return None
@@ -62,8 +62,8 @@ class Audio:
         return NotImplemented
 
     def save(self, path):
-        data = np.array(self.time_series, dtype=np.float32)
-        scipy.io.wavfile.write(path, self.__sampling_rate, data)
+        data = np.array(self.time_series)
+        scipy.io.wavfile.write(path, self.__sampling_rate, data.astype(np.int16))
 
     def mel_spectrogram(self):
         data = np.array(self.time_series, dtype=np.float32)
