@@ -1,9 +1,8 @@
 import glob
-import json
 import os
 import pathlib
+import shutil
 import zipfile
-
 import requests
 
 
@@ -40,16 +39,27 @@ def generate(subject_ids: list[str], api_path: str, api_token: str):
     train_wave_file_lines.pop()
     train_text_file_lines.pop()
 
-    __write_lines_to_files_in_dir(str(pathlib.Path().resolve()) + "/data/train/", train_wave_file_lines, train_text_file_lines)
-    __write_lines_to_files_in_dir(str(pathlib.Path().resolve()) + "/data/validate/", validate_wave_file_lines, validate_text_file_lines)
+    __write_lines_to_files_in_dir(str(pathlib.Path().resolve()) + "/data/train/", train_wave_file_lines,
+                                  train_text_file_lines)
+    __write_lines_to_files_in_dir(str(pathlib.Path().resolve()) + "/data/validate/", validate_wave_file_lines,
+                                  validate_text_file_lines)
 
     return
 
 
 def __retrieve_files_from_api(api_path: str, api_token: str, sample_dir: str):
+    for filename in os.listdir(sample_dir):
+        file_path = os.path.join(sample_dir, filename)
+        try:
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
+        except Exception as e:
+            print('Failed to delete %s. Reason: %s' % (file_path, e))
+
     temp_zip_file = sample_dir + 'temp.zip'
     headers = {"Authorization": "Bearer " + api_token}
-
     response = requests.get(api_path, headers=headers)
     open(temp_zip_file, 'wb').write(response.content)
 
