@@ -44,12 +44,15 @@ class Audio:
     def is_wrong(self):
         return 'wrong' in self.__filename
 
+    @property
     def get_duration(self):
         return librosa.get_duration(y=self.time_series, sr=self.__sampling_rate)
 
+    @property
     def get_orignial_time_series(self):
         return self.__original_time_series
 
+    @property
     def get_original_duration(self):
         return self.__original_duration
 
