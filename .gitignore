@@ -1,3 +1,9 @@
+# Files
+data/audio_samples/*
+data/train/*
+data/validate/*
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

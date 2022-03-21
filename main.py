@@ -1,5 +1,10 @@
+import configparser
+import json
+import os
+
 import allosaurus.allosaurus.app as allo
 import allosaurus.allosaurus.audio
+import data.fine_tune_file_generator
 import processing.data_loader
 import fine_tune as ft
 from pathlib import Path
@@ -8,8 +13,23 @@ from processing import data_loader
 
 def main():
     #ft.fine_tune()
-    recognize()
+    # recognize()
+    config = __load_config()
+    data.fine_tune_file_generator.generate(json.loads(config.get('allo', 'Subjects')), config.get('allo', 'API_Path'),
+                                           config.get('allo', 'API_Token'))
     return
+
+
+def __load_config():
+    base_folder = os.path.dirname(os.path.abspath(__file__))
+    config_file = "config.cnf"
+    if not os.path.exists(config_file) or not os.path.isfile(config_file):
+        print(f"Config file missing... Path should be {os.getcwd()}/config.cfg")
+        return
+
+    config = configparser.ConfigParser()
+    config.read(os.path.join(base_folder, config_file))
+    return config
 
 
 def recognize():
