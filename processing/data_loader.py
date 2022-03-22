@@ -1,4 +1,6 @@
 import os
+
+import numpy as np
 import pandas as pd
 import warnings
 import librosa
@@ -69,8 +71,8 @@ class DataLoader:
         return pd.DataFrame({"filename": file_names, "time_series": time_series_data})
 
     def preprocessing(self, audio_file: Audio):
-        transformer.remove_noise(audio_file)
-        transformer.normalize(audio_file)
+        # transformer.remove_noise(audio_file)
+        # transformer.normalize(audio_file)
         transformer.trim(audio_file, self.__settings.get("trim_threshold"))
         if self.__settings.get("mfcc"):
             transformer.mfccs(audio_file)
@@ -80,6 +82,7 @@ class DataLoader:
 
     def store_processed_files(self):
         for audio_file in self.__data:
+            audio_file.time_series = np.array([int(s * 32768) for s in audio_file.time_series])
             audio_file.save("data/audio_samples/"+audio_file.get_filename)
 
     def change_setting(self, key: str, value: any):

@@ -6,7 +6,7 @@ import numpy as np
 
 def load(path):
     if os.path.exists(path):
-        time_series, sampling_rate = librosa.load(path, sr=None, dtype=np.int16)
+        time_series, sampling_rate = librosa.load(path, sr=None)
         return Audio(path, time_series, sampling_rate)
     else:
         return None
