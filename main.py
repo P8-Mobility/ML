@@ -12,10 +12,10 @@ from processing import data_loader
 
 
 def main():
-    config = __load_config()
-    data.fine_tune_file_generator.generate(json.loads(config.get('allo', 'Subjects')), config.get('allo', 'API_Path'),
-                                           config.get('allo', 'API_Token'))
-    ft.fine_tune(str(pathlib.Path().resolve()) + "/data/")
+    # config = __load_config()
+    # data.fine_tune_file_generator.generate(json.loads(config.get('allo', 'Subjects')), config.get('allo', 'API_Path'),
+    #                                        config.get('allo', 'API_Token'))
+    # ft.fine_tune(str(pathlib.Path().resolve()) + "/data/")
     recognize()
 
     return
@@ -34,7 +34,7 @@ def __load_config():
 
 
 def recognize():
-    model = allo.read_recognizer(alt_model_path=Path('allosaurus/allosaurus/pretrained/paereModelV2'))
+    model = allo.read_recognizer(alt_model_path=Path('allosaurus/allosaurus/pretrained/paereModel'))
 
     loader = data_loader.DataLoader()
     # loader.change_setting("scale_length", False)
