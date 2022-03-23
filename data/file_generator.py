@@ -2,6 +2,7 @@ import glob
 import os
 import pathlib
 import shutil
+import warnings
 import zipfile
 import requests
 
@@ -16,8 +17,8 @@ def generate(subject_ids: list[str], api_path: str, api_token: str):
     :param api_path: path to API endpoint
     :param api_token: Bearer token for API
     """
-    training_samples_path: str = str(pathlib.Path().resolve()) + "/data/training_samples"
-    validation_samples_path: str = str(pathlib.Path().resolve()) + "/data/validation_samples"
+    training_samples_path: str = str(pathlib.Path().resolve()) + "/data/training_samples/"
+    validation_samples_path: str = str(pathlib.Path().resolve()) + "/data/validation_samples/"
 
     train_wave_file_lines: list[str] = []
     train_text_file_lines: list[str] = []
@@ -35,9 +36,14 @@ def generate(subject_ids: list[str], api_path: str, api_token: str):
         text_entry: str = filename + " pʰ æː ɐ"
 
         if identifier in subject_ids:
-            __append_lines(validate_text_file_lines, text_entry, validate_wave_file_lines, wave_entry)
+            validate_wave_file_lines, validate_text_file_lines = __append_lines(validate_wave_file_lines, wave_entry,
+                                                                                validate_text_file_lines, text_entry)
         else:
-            __append_lines(train_text_file_lines, text_entry, train_wave_file_lines, wave_entry)
+            train_wave_file_lines, train_text_file_lines = __append_lines(train_wave_file_lines, wave_entry,
+                                                                          train_text_file_lines, text_entry)
+
+    if not (validate_wave_file_lines and validate_text_file_lines and train_wave_file_lines and train_text_file_lines):
+        return warnings.warn("Unable to fetch test and/or train data")
 
     validate_wave_file_lines.pop()
     validate_text_file_lines.pop()
@@ -53,11 +59,14 @@ def generate(subject_ids: list[str], api_path: str, api_token: str):
     __preprocess_files_and_overwrite(validation_samples_path)
 
 
-def __append_lines(text_file_lines: list[str], text_entry: str, wave_file_lines: list[str], wave_entry: str):
+def __append_lines(wave_file_lines: list[str], wave_entry: str, text_file_lines: list[str], text_entry: str) -> tuple[
+    list[str], list[str]]:
     wave_file_lines.append(wave_entry)
     wave_file_lines.append('\n')
     text_file_lines.append(text_entry)
     text_file_lines.append('\n')
+
+    return wave_file_lines, text_file_lines
 
 
 def __preprocess_files_and_overwrite(samples_path: str):

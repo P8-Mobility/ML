@@ -14,8 +14,8 @@ from processing import data_loader
 def main():
     model: str = 'paere'
     config = __load_config()
-    data.fine_tune_file_generator.generate(json.loads(config.get('ALLO', 'Subjects')), config.get('ALLO', 'API_Path'),
-                                           config.get('ALLO', 'API_Token'))
+    data.file_generator.generate(json.loads(config.get('ALLO', 'Subjects')), config.get('ALLO', 'API_Path'),
+                                 config.get('ALLO', 'API_Token'))
     ft.fine_tune(str(pathlib.Path().resolve()) + '/data/', model)
     recognize(model, 'data/validation_samples')
 
