@@ -17,7 +17,7 @@ def main():
     data.file_generator.generate(json.loads(config.get('ALLO', 'Subjects')), config.get('ALLO', 'API_Path'),
                                  config.get('ALLO', 'API_Token'))
     ft.fine_tune(str(pathlib.Path().resolve()) + '/data/', model)
-    recognize(model, 'data/validation_samples')
+    recognize_directory(model, 'data/validation_samples')
 
     return
 
@@ -34,7 +34,7 @@ def __load_config():
     return config
 
 
-def recognize(model: str, data_path: str):
+def recognize_directory(model: str, data_path: str):
     """
     Predict the files found in the data_path, using the model
 
