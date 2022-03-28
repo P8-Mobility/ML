@@ -6,6 +6,7 @@ import warnings
 import zipfile
 import requests
 
+from data.word_phoneme_map import WordPhonemeMap
 from processing import data_loader
 
 
@@ -19,28 +20,29 @@ def generate(subject_ids: list[str], api_path: str, api_token: str, should_overw
     :param should_overwrite: whether the directories should be overwritten by new data.
     If False, no new data will be added to non-empty directories
     """
-    training_samples_path: str = str(pathlib.Path().resolve()) + "/data/training_samples/"
-    validation_samples_path: str = str(pathlib.Path().resolve()) + "/data/validation_samples/"
+    samples_path: str = str(pathlib.Path().resolve()) + "/data/samples/"
 
     train_wave_file_lines: list[str] = []
     train_text_file_lines: list[str] = []
     validate_wave_file_lines: list[str] = []
     validate_text_file_lines: list[str] = []
 
-    overwrite_train: bool = should_overwrite or len(os.listdir(training_samples_path)) == 0
-    overwrite_validate: bool = should_overwrite or len(os.listdir(validation_samples_path)) == 0
+    overwrite_samples: bool = should_overwrite or len(os.listdir(samples_path)) == 0
 
-    if overwrite_train:
-        __retrieve_files_from_api(api_path + "?word=paere", api_token, training_samples_path)
-    if overwrite_validate:
-        __retrieve_files_from_api(api_path, api_token, validation_samples_path)
+    if overwrite_samples:
+        __retrieve_files_from_api(api_path, api_token, samples_path)
 
-    for file in glob.glob(training_samples_path + "*.wav"):
+    for file in glob.glob(samples_path + "*.wav"):
         filename: str = file.split('.', 1)[0]
-        identifier: str = filename.split('-')[2].split('.')[0]
+        identifier: str = filename.split('-')[2]
+        word: str = filename.split('-')[3]
+
+        if not WordPhonemeMap.contains(word):
+            # Word was not found in the word phoneme map, so skip it
+            continue
 
         wave_entry: str = filename + " " + file
-        text_entry: str = filename + " pʰ æː ɐ"
+        text_entry: str = filename + " " + WordPhonemeMap.get(word)
 
         if identifier in subject_ids:
             validate_wave_file_lines, validate_text_file_lines = __append_lines(validate_wave_file_lines, wave_entry,
@@ -52,6 +54,7 @@ def generate(subject_ids: list[str], api_path: str, api_token: str, should_overw
     if not (validate_wave_file_lines and validate_text_file_lines and train_wave_file_lines and train_text_file_lines):
         return warnings.warn("Unable to fetch test and/or train data")
 
+    # Removing trailing newline from each list
     validate_wave_file_lines.pop()
     validate_text_file_lines.pop()
     train_wave_file_lines.pop()
@@ -62,14 +65,13 @@ def generate(subject_ids: list[str], api_path: str, api_token: str, should_overw
     __write_lines_to_files_in_dir(str(pathlib.Path().resolve()) + "/data/validate/", validate_wave_file_lines,
                                   validate_text_file_lines)
 
-    if overwrite_train:
-        __preprocess_files_and_overwrite(training_samples_path)
-    if overwrite_validate:
-        __preprocess_files_and_overwrite(validation_samples_path)
+    if overwrite_samples:
+        # Only do preprocessing if the files have been overwritten to avoid double preprocessing
+        __preprocess_files_and_overwrite(samples_path)
 
 
 def __append_lines(wave_file_lines: list[str], wave_entry: str, text_file_lines: list[str], text_entry: str) -> tuple[
-    list[str], list[str]]:
+        list[str], list[str]]:
     wave_file_lines.append(wave_entry)
     wave_file_lines.append('\n')
     text_file_lines.append(text_entry)
@@ -109,10 +111,11 @@ def __retrieve_files_from_api(api_path: str, api_token: str, sample_dir: str):
 
 
 def __write_lines_to_files_in_dir(directory: str, lines_for_wave: list[str], lines_for_text: list[str]):
+    # Ensure that the files exists or create them
     pathlib.Path(directory + 'wave').touch()
     pathlib.Path(directory + 'text').touch()
 
-    with open(directory + 'wave', "w") as validate_wave_file:
-        validate_wave_file.writelines(lines_for_wave)
-    with open(directory + 'text', "w") as validate_text_file:
-        validate_text_file.writelines(lines_for_text)
+    with open(directory + 'wave', "w") as wave_file:
+        wave_file.writelines(lines_for_wave)
+    with open(directory + 'text', "w") as text_file:
+        text_file.writelines(lines_for_text)
