@@ -2,6 +2,8 @@ import configparser
 import json
 import os
 import pathlib
+from typing import Union
+
 import numpy
 import allosaurus.allosaurus.app as allo
 import allosaurus.allosaurus.audio
@@ -22,7 +24,7 @@ def main():
     return
 
 
-def __load_config():
+def __load_config() -> Union[configparser.ConfigParser, None]:
     base_folder = os.path.dirname(os.path.abspath(__file__))
     config_file = 'config.cnf'
     if not os.path.exists(config_file) or not os.path.isfile(config_file):

@@ -99,7 +99,7 @@ def __retrieve_files_from_api(api_path: str, api_token: str, sample_dir: str):
     os.remove(temp_zip_file)
 
 
-def __write_lines_to_files_in_dir(directory: str, lines_for_wave: list[str], lines_for_text: list[str]) -> None:
+def __write_lines_to_files_in_dir(directory: str, lines_for_wave: list[str], lines_for_text: list[str]):
     pathlib.Path(directory + 'wave').touch()
     pathlib.Path(directory + 'text').touch()
 
