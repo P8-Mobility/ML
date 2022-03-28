@@ -27,9 +27,9 @@ def generate(subject_ids: list[str], api_path: str, api_token: str, should_overw
     validate_wave_file_lines: list[str] = []
     validate_text_file_lines: list[str] = []
 
-    overwrite_train: bool = should_overwrite or len(os.listdir(samples_path)) == 0
+    overwrite_samples: bool = should_overwrite or len(os.listdir(samples_path)) == 0
 
-    if overwrite_train:
+    if overwrite_samples:
         __retrieve_files_from_api(api_path, api_token, samples_path)
 
     for file in glob.glob(samples_path + "*.wav"):
@@ -65,7 +65,8 @@ def generate(subject_ids: list[str], api_path: str, api_token: str, should_overw
     __write_lines_to_files_in_dir(str(pathlib.Path().resolve()) + "/data/validate/", validate_wave_file_lines,
                                   validate_text_file_lines)
 
-    if overwrite_train:
+    if overwrite_samples:
+        # Only do preprocessing if the files have been overwritten to avoid double preprocessing
         __preprocess_files_and_overwrite(samples_path)
 
 
