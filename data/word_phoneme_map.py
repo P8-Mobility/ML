@@ -28,7 +28,7 @@ class WordPhonemeMap:
         return WordPhonemeMap.word_phoneme_map.get(word)
 
     @staticmethod
-    def contains(word):
+    def contains(word) -> bool:
         """
         Checks whether the given word is present in the map
 
