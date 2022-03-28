@@ -9,13 +9,15 @@ import requests
 from processing import data_loader
 
 
-def generate(subject_ids: list[str], api_path: str, api_token: str):
+def generate(subject_ids: list[str], api_path: str, api_token: str, should_overwrite: bool = False):
     """
     Fetches audio samples from api and saves samples in their respective directories
 
     :param subject_ids: IDs of subjects to leave out during training (LOSO)
     :param api_path: path to API endpoint
     :param api_token: Bearer token for API
+    :param should_overwrite: whether the directories should be overwritten by new data.
+    If False, no new data will be added to non-empty directories
     """
     training_samples_path: str = str(pathlib.Path().resolve()) + "/data/training_samples/"
     validation_samples_path: str = str(pathlib.Path().resolve()) + "/data/validation_samples/"
@@ -25,8 +27,13 @@ def generate(subject_ids: list[str], api_path: str, api_token: str):
     validate_wave_file_lines: list[str] = []
     validate_text_file_lines: list[str] = []
 
-    __retrieve_files_from_api(api_path + "?word=paere", api_token, training_samples_path)
-    __retrieve_files_from_api(api_path, api_token, validation_samples_path)
+    overwrite_train: bool = should_overwrite or len(os.listdir(training_samples_path)) == 0
+    overwrite_validate: bool = should_overwrite or len(os.listdir(validation_samples_path)) == 0
+
+    if overwrite_train:
+        __retrieve_files_from_api(api_path + "?word=paere", api_token, training_samples_path)
+    if overwrite_validate:
+        __retrieve_files_from_api(api_path, api_token, validation_samples_path)
 
     for file in glob.glob(training_samples_path + "*.wav"):
         filename: str = file.split('.', 1)[0]
@@ -55,8 +62,10 @@ def generate(subject_ids: list[str], api_path: str, api_token: str):
     __write_lines_to_files_in_dir(str(pathlib.Path().resolve()) + "/data/validate/", validate_wave_file_lines,
                                   validate_text_file_lines)
 
-    __preprocess_files_and_overwrite(training_samples_path)
-    __preprocess_files_and_overwrite(validation_samples_path)
+    if overwrite_train:
+        __preprocess_files_and_overwrite(training_samples_path)
+    if overwrite_validate:
+        __preprocess_files_and_overwrite(validation_samples_path)
 
 
 def __append_lines(wave_file_lines: list[str], wave_entry: str, text_file_lines: list[str], text_entry: str) -> tuple[
