@@ -62,8 +62,8 @@ def remove_noise(audio: Audio):
 
 
 def stretch_to_same_time(audio1: Audio, audio2: Audio):
-    audio1_duration = audio1.get_duration()
-    audio2_duration = audio2.get_duration()
+    audio1_duration = audio1.get_duration
+    audio2_duration = audio2.get_duration
     avg = (audio1_duration+audio2_duration) / 2
     audio1.time_series = librosa.effects.time_stretch(audio1.time_series, rate=audio1_duration / avg)
     audio2.time_series = librosa.effects.time_stretch(audio2.time_series, rate=audio2_duration / avg)

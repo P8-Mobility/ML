@@ -46,7 +46,7 @@ class DataLoader:
     def fit(self):
         for audio_file in self.__data:
             self.preprocessing(audio_file)
-            self.__duration_sum += audio_file.get_duration()
+            self.__duration_sum += audio_file.get_duration
 
         self.__duration_scale = self.__duration_sum / len(self.__data)
 
@@ -78,7 +78,7 @@ class DataLoader:
             transformer.mfccs(audio_file)
 
     def scale(self, audio_file: Audio):
-        audio_file.time_series = librosa.effects.time_stretch(audio_file.time_series, rate=audio_file.get_duration() / self.__duration_scale)
+        audio_file.time_series = librosa.effects.time_stretch(audio_file.time_series, rate=audio_file.get_duration / self.__duration_scale)
 
     def store_processed_files(self, path: str):
         if os.path.isdir(path):

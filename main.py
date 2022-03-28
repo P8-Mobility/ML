@@ -17,9 +17,9 @@ def main():
     model: str = 'paere'
     config = __load_config()
     data.file_generator.generate(json.loads(config.get('ALLO', 'Subjects')), config.get('ALLO', 'API_Path'),
-                                 config.get('ALLO', 'API_Token'), False)
+                                 config.get('ALLO', 'API_Token'), True)
     ft.fine_tune(str(pathlib.Path().resolve()) + '/data/', model)
-    recognize_directory(model, 'data/validation_samples')
+    recognize_directory(model, 'data/samples')
 
     return
 
