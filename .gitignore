@@ -1,3 +1,10 @@
+# Files
+data/train/*
+data/validate/*
+data/training_samples/*
+data/validation_samples/*
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -102,6 +109,7 @@ celerybeat.pid
 *.sage.py
 
 # Environments
+.idea
 .env
 .venv
 env/
