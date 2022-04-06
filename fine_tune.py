@@ -25,4 +25,4 @@ def fine_tune(data_dir: str, model_name: str = "paere"):
     shutil.rmtree(pathlib.Path("allosaurus/allosaurus/pretrained/" + model_name), ignore_errors=True)
 
     # command to fine_tune your data
-    os.system("python -m allosaurus.allosaurus.bin.adapt_model --pretrained_model=uni2005 --new_model=" + model_name + " --path=" + data_dir + " --lang=dan --device_id=0 --epoch=50")
+    os.system("python -m allosaurus.allosaurus.bin.adapt_model --pretrained_model=uni2005 --new_model=" + model_name + " --path=" + data_dir + " --lang=dan --device_id=-1 --epoch=100")

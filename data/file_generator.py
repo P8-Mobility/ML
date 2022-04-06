@@ -85,6 +85,7 @@ def __preprocess_files_and_overwrite(samples_path: str):
     loader.add_folder_to_model(samples_path)
     loader.fit()
     loader.store_processed_files(samples_path)
+    print("Preprocessing!")
 
 
 def __retrieve_files_from_api(api_path: str, api_token: str, sample_dir: str):

@@ -17,7 +17,7 @@ class DataLoader:
         self.__data = audio_list
         self.__duration_scale = 0
         self.__duration_sum = 0
-        self.__settings = {"trim_threshold": 20, "mfcc": False, "scale_length": False}
+        self.__settings = {"trim_threshold": 25, "mfcc": False, "scale_length": False}
 
     def clear(self):
         self.__data.clear()
@@ -71,8 +71,8 @@ class DataLoader:
         return pd.DataFrame({"filename": file_names, "time_series": time_series_data})
 
     def preprocessing(self, audio_file: Audio):
-        transformer.remove_noise(audio_file)
-        transformer.normalize(audio_file)
+        #transformer.remove_noise(audio_file)
+        #transformer.normalize(audio_file)
         transformer.trim(audio_file, self.__settings.get("trim_threshold"))
         if self.__settings.get("mfcc"):
             transformer.mfccs(audio_file)
