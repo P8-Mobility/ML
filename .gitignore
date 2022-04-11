@@ -1,7 +1,7 @@
 # Files
 data/train/*
 data/validate/*
-data/samples/*
+data/samples/*.wav
 
 
 # Byte-compiled / optimized / DLL files
