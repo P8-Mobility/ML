@@ -21,8 +21,11 @@ def fine_tune(data_dir: str, model_name: str = "paere"):
     pf.prepare_feature(pathlib.Path(data_dir + "/validate"), "uni2005/")
     pt.prepare_token(pathlib.Path(data_dir + "/validate"), "uni2005/", 'dan')
 
-    # Ignore errors is set to true, to avoid exception if the folder does not exist
-    shutil.rmtree(pathlib.Path("allosaurus/allosaurus/pretrained/" + model_name), ignore_errors=True)
+    for epochs in range(30, 70, 5):
+        print("Training model with " + str(epochs) + " epochs...")
 
-    # command to fine_tune your data
-    os.system("python -m allosaurus.allosaurus.bin.adapt_model --pretrained_model=uni2005 --new_model=" + model_name + " --path=" + data_dir + " --lang=dan --device_id=-1 --epoch=100")
+        # Ignore errors is set to true, to avoid exception if the folder does not exist
+        shutil.rmtree(pathlib.Path("allosaurus/allosaurus/pretrained/" + model_name + "_" + str(epochs)), ignore_errors=True)
+
+        # command to fine_tune your data
+        os.system("python -m allosaurus.allosaurus.bin.adapt_model --pretrained_model=uni2005 --new_model=" + model_name + "_" + str(epochs) + " --path=" + data_dir + " --lang=dan --device_id=-1 --epoch=" + str(epochs))
