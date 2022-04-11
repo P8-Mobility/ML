@@ -26,7 +26,7 @@ def fine_tune(data_dir: str, model_name: str = "paere"):
     pf.prepare_feature(pathlib.Path(data_dir + "/validate"), "uni2005/")
     pt.prepare_token(pathlib.Path(data_dir + "/validate"), "uni2005/", 'dan')
 
-    for epochs in range(30, 75, 5):
+    for epochs in range(70, 25, -5):
         print("Training model with " + str(epochs) + " epochs...")
 
         # Ignore errors is set to true, to avoid exception if the folder does not exist
