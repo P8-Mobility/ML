@@ -12,6 +12,8 @@ class WordPhonemeMap:
         "udtale": "u ɤ t s æː l ə",
         "pony": "pʰ ɒ n i",
         "putin": "pʰ u t e n",
+        "aeer": "æː ɐ",
+        "er": "æ ɐ"
     }
 
     @staticmethod
