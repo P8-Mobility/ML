@@ -73,7 +73,7 @@ class DataLoader:
     def preprocessing(self, audio_file: Audio):
         #transformer.remove_noise(audio_file)
         #transformer.normalize(audio_file)
-        transformer.trim(audio_file, self.__settings.get("trim_threshold"))
+        #transformer.trim(audio_file, self.__settings.get("trim_threshold"))
         if self.__settings.get("mfcc"):
             transformer.mfccs(audio_file)
 

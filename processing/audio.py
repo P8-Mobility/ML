@@ -38,11 +38,11 @@ class Audio:
 
     @property
     def get_id(self):
-        return self.__filename.split('-')[2].split('.')[0]
+        return self.__filename.split('-')[2]
 
     @property
-    def is_wrong(self):
-        return 'wrong' in self.__filename
+    def get_word(self):
+        return self.__filename.split('-')[3].split('.')[0]
 
     @property
     def get_duration(self):
