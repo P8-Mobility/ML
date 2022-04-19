@@ -19,7 +19,7 @@ def main():
     config = __load_config()
     data.file_generator.generate(json.loads(config.get('ALLO', 'Subjects')), config.get('ALLO', 'API_Path'),
                                  config.get('ALLO', 'API_Token'), True)
-    # ft.fine_tune(str(pathlib.Path().resolve()) + '/data/', config, model)
+    ft.fine_tune(str(pathlib.Path().resolve()) + '/data/', config, model)
     recognize_directory("paere_30", 'data/test', config)
 
     return
