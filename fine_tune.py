@@ -77,7 +77,7 @@ def recognize_directory(model: str, config: configparser.ConfigParser) -> (int, 
     phoneme_map = WordPhonemeMap
 
     loader = data_loader.DataLoader()
-    loader.add_folder_to_model("data/samples")
+    loader.add_folder_to_model("data/samples_validation")
     files = loader.get_data_files()
 
     correct_classified = 0
@@ -95,8 +95,8 @@ def recognize_directory(model: str, config: configparser.ConfigParser) -> (int, 
         aud = audio.Audio(file.time_series, file.get_sampling_rate)
         res: str = model.recognize(aud)
 
-        # if (word == "paere" and phoneme == res) or (word != "paere" and res != phoneme_map.get("paere")):
-        if phoneme == res:
+        # if phoneme == res:
+        if (word == "paere" and phoneme == res) or (word != "paere" and res != phoneme_map.get("paere")):
             correct_classified += 1
 
         if phoneme != "":

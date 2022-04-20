@@ -3,7 +3,6 @@ import json
 import os
 import pathlib
 from typing import Union
-
 import numpy
 import allosaurus.allosaurus.app as allo
 import allosaurus.allosaurus.audio as audio
@@ -16,11 +15,19 @@ from data.word_phoneme_map import WordPhonemeMap
 
 def main():
     model: str = 'paere'
+    samples_dir = str(pathlib.Path().resolve()) + '/data/samples/'
     config = __load_config()
-    data.file_generator.generate(json.loads(config.get('ALLO', 'Subjects')), config.get('ALLO', 'API_Path'),
-                                 config.get('ALLO', 'API_Token'), True)
+    # data.file_generator.generate(json.loads(config.get('ALLO', 'Subjects')), config.get('ALLO', 'API_Path'),
+    #                              config.get('ALLO', 'API_Token'), True)
+    # ft.fine_tune(str(pathlib.Path().resolve()) + '/data/', config, model)
+
+    data.file_generator.retrieve_files_from_api(json.loads(config.get('ALLO', 'Subjects')),
+                                                config.get('ALLO', 'API_Path'), config.get('ALLO', 'API_Token'),
+                                                str(pathlib.Path().resolve()) + '/data/samples/')
+    data.file_generator.generate()
     ft.fine_tune(str(pathlib.Path().resolve()) + '/data/', config, model)
-    recognize_directory("paere_30", 'data/test', config)
+
+    # recognize_directory("paere_30", 'data/test', config)
 
     return
 

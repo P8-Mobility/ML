@@ -3,6 +3,6 @@ ModelPath=trained_models/occ_model_overridden.sav
 DataPath=data/train
 
 [ALLO]
-Subjects=["JT9cmIVYZL", "Viy3lDCn8e", "XCkYOFWyTy", "PKTmkDGp7L", "ZOKcH3KIut", "EYrc9DCNpw"]
+Subjects=["IacCFpyUgB", "KL6d7f0oVi", "JryI4xVeUq", "Viy3lDCn8e", "XCkYOFWyTy", "PKTmkDGp7L"]
 API_Path=https://dataindsamling.libdom.net/api/download
 API_Token=70f07f7b8b1211a7a25c7d0cb2ecb5c082abe80189119b2f0a1c0a0b72dd6d28
