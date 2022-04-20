@@ -1,4 +1,5 @@
 import glob
+import math
 import os
 import pathlib
 import shutil
@@ -10,31 +11,69 @@ from data.word_phoneme_map import WordPhonemeMap
 from processing import data_loader
 
 
-def generate(subject_ids: list[str], api_path: str, api_token: str, should_overwrite: bool = False):
+def retrieve_files_from_api(subject_ids: list[str], api_path: str, api_token: str, samples_dir: str):
+    """
+    Retrieves .zip file from the REST API, extracts the samples,
+    and splits them into samples_dir and 'samples_validation'
+
+    :param subject_ids: identifiers for subjects to be moved into 'samples_validation' directory
+    :param api_path: endpoint of the API
+    :param api_token: bearer token for the API
+    :param samples_dir: directory to store samples with identifier not in subject_ids
+    :return:
+    """
+    # clear the target sample directory
+    os.makedirs(samples_dir, exist_ok=True)
+    for filename in os.listdir(samples_dir):
+        file_path = os.path.join(samples_dir, filename)
+        try:
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
+        except Exception as e:
+            print('Failed to delete %s. Reason: %s' % (file_path, e))
+
+    # download samples as .zip file
+    temp_zip_file = samples_dir + 'temp.zip'
+    headers = {"Authorization": "Bearer " + api_token}
+    response = requests.get(api_path, headers=headers)
+    open(temp_zip_file, 'wb').write(response.content)
+
+    # Unzip files to dir
+    with zipfile.ZipFile(temp_zip_file, 'r') as zip_ref:
+        zip_ref.extractall(samples_dir)
+
+    os.remove(temp_zip_file)
+
+    __preprocess_files_and_overwrite(samples_dir)
+
+    # move samples from LOSO subjects into validation directory
+    if not os.path.exists("data/samples_validation") or len(os.listdir("data/samples_validation")) == 0:
+        os.makedirs("data/samples_validation", exist_ok=True)
+
+    for file_path in glob.glob(samples_dir + "*.wav"):
+        if file_path.split('-')[2] in subject_ids:
+            shutil.move(file_path, 'data/samples_validation/')
+
+
+def generate(samples_path: str = "/data/samples/"):
     """
     Fetches audio samples from api and saves samples in their respective directories
 
-    :param subject_ids: IDs of subjects to leave out during training (LOSO)
-    :param api_path: path to API endpoint
-    :param api_token: Bearer token for API
-    :param should_overwrite: whether the directories should be overwritten by new data.
-    If False, no new data will be added to non-empty directories
+    :param samples_path: path to the folder containing the samples that should be used to generate training files
     """
-    samples_path: str = str(pathlib.Path().resolve()) + "/data/samples/"
 
     train_wave_file_lines: list[str] = []
     train_text_file_lines: list[str] = []
     validate_wave_file_lines: list[str] = []
     validate_text_file_lines: list[str] = []
 
-    overwrite_samples: bool = should_overwrite or len(os.listdir(samples_path)) == 0
+    file_paths: list[str] = glob.glob(samples_path + "*.wav")
+    training_set: list[str] = file_paths[:math.floor(len(file_paths) * 0.8)]
 
-    if overwrite_samples:
-        __retrieve_files_from_api(api_path, api_token, samples_path)
-
-    for file in glob.glob(samples_path + "*.wav"):
+    for file in training_set:
         filename: str = file.split('.', 1)[0]
-        identifier: str = filename.split('-')[2]
         word: str = filename.split('-')[3]
 
         if not WordPhonemeMap.contains(word):
@@ -44,30 +83,42 @@ def generate(subject_ids: list[str], api_path: str, api_token: str, should_overw
         wave_entry: str = filename + " " + file
         text_entry: str = filename + " " + WordPhonemeMap.get(word)
 
-        if identifier in subject_ids:
-            validate_wave_file_lines, validate_text_file_lines = __append_lines(validate_wave_file_lines, wave_entry,
-                                                                                validate_text_file_lines, text_entry)
-        else:
-            train_wave_file_lines, train_text_file_lines = __append_lines(train_wave_file_lines, wave_entry,
-                                                                          train_text_file_lines, text_entry)
+        train_wave_file_lines, train_text_file_lines = __append_lines(train_wave_file_lines, wave_entry,
+                                                                      train_text_file_lines, text_entry)
 
-    if not (validate_wave_file_lines and validate_text_file_lines and train_wave_file_lines and train_text_file_lines):
-        return warnings.warn("Unable to fetch test and/or train data")
+    if not (train_wave_file_lines and train_text_file_lines):
+        return warnings.warn("Unable to fetch test and/or training data")
 
     # Removing trailing newline from each list
-    validate_wave_file_lines.pop()
-    validate_text_file_lines.pop()
     train_wave_file_lines.pop()
     train_text_file_lines.pop()
 
     __write_lines_to_files_in_dir(str(pathlib.Path().resolve()) + "/data/train/", train_wave_file_lines,
                                   train_text_file_lines)
+
+    validation_set: list[str] = file_paths[math.floor(round(len(file_paths)) * 0.8):]
+    for file in validation_set:
+        filename: str = file.split('.', 1)[0]
+        word: str = filename.split('-')[3]
+
+        if not WordPhonemeMap.contains(word):
+            # Word was not found in the word phoneme map, so skip it
+            continue
+
+        wave_entry: str = filename + " " + file
+        text_entry: str = filename + " " + WordPhonemeMap.get(word)
+
+        validate_wave_file_lines, validate_text_file_lines = __append_lines(validate_wave_file_lines, wave_entry,
+                                                                            validate_text_file_lines, text_entry)
+
+    if not (validate_wave_file_lines and validate_text_file_lines):
+        return warnings.warn("Unable to fetch test and/or validation data")
+
+    validate_wave_file_lines.pop()
+    validate_text_file_lines.pop()
+
     __write_lines_to_files_in_dir(str(pathlib.Path().resolve()) + "/data/validate/", validate_wave_file_lines,
                                   validate_text_file_lines)
-
-    if overwrite_samples:
-        # Only do preprocessing if the files have been overwritten to avoid double preprocessing
-        __preprocess_files_and_overwrite(samples_path)
 
 
 def __append_lines(wave_file_lines: list[str], wave_entry: str, text_file_lines: list[str], text_entry: str) -> tuple[
@@ -85,29 +136,6 @@ def __preprocess_files_and_overwrite(samples_path: str):
     loader.add_folder_to_model(samples_path)
     loader.fit()
     loader.store_processed_files(samples_path)
-
-
-def __retrieve_files_from_api(api_path: str, api_token: str, sample_dir: str):
-    for filename in os.listdir(sample_dir):
-        file_path = os.path.join(sample_dir, filename)
-        try:
-            if os.path.isfile(file_path) or os.path.islink(file_path):
-                os.unlink(file_path)
-            elif os.path.isdir(file_path):
-                shutil.rmtree(file_path)
-        except Exception as e:
-            print('Failed to delete %s. Reason: %s' % (file_path, e))
-
-    temp_zip_file = sample_dir + 'temp.zip'
-    headers = {"Authorization": "Bearer " + api_token}
-    response = requests.get(api_path, headers=headers)
-    open(temp_zip_file, 'wb').write(response.content)
-
-    # Unzip files to dir
-    with zipfile.ZipFile(temp_zip_file, 'r') as zip_ref:
-        zip_ref.extractall(sample_dir)
-
-    os.remove(temp_zip_file)
 
 
 def __write_lines_to_files_in_dir(directory: str, lines_for_wave: list[str], lines_for_text: list[str]):

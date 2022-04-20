@@ -1,5 +1,7 @@
 import configparser
 import os
+import pathlib
+import shutil
 from typing import Union
 
 import numpy
@@ -15,6 +17,14 @@ from processing import data_loader
 
 
 def main():
+    # fetch data if samples do not exist
+    samples_dir = str(pathlib.Path().resolve()) + '/data/samples/'
+    config = __load_config()
+    if not (os.path.exists(samples_dir) and len(os.listdir(samples_dir)) > 0):
+        data.file_generator.retrieve_files_from_api(json.loads(config.get('ALLO', 'Subjects')),
+                                                    config.get('ALLO', 'API_Path'), config.get('ALLO', 'API_Token'),
+                                                    str(pathlib.Path().resolve()) + '/data/samples/')
+
     run_limited_samples_test()
     return
 
@@ -31,10 +41,13 @@ def __load_config() -> Union[configparser.ConfigParser, None]:
     return config
 
 
-def fine_tune_model(model_name: str = "paere", refresh_data: bool = False):
-    config = __load_config()
-    data.file_generator.generate(json.loads(config.get('ALLO', 'Subjects')), config.get('ALLO', 'API_Path'),
-                                 config.get('ALLO', 'API_Token'), refresh_data)
+def fine_tune_model(model_name: str = "paere"):
+    """
+    Run fine-tuning on specified model
+
+    :param model_name: name of the model to fine-tune
+    """
+    data.file_generator.generate(str(pathlib.Path().resolve()) + '/data/samples/')
     ft.fine_tune(str(Path().resolve()) + '/data/', model_name)
 
 
@@ -49,7 +62,6 @@ def recognize_directory(model: str, data_path: str):
 
     loader = data_loader.DataLoader()
     loader.add_folder_to_model(data_path)
-    # loader.fit() ToDo preprocess here when we start using the model for recognizing
     files = loader.get_data_files()
 
     for file in files:
@@ -77,23 +89,32 @@ def recognize(model: str, sample_time_series: numpy.ndarray, sample_sample_rate:
 
 
 def run_limited_samples_test():
+    """
+    Execute test for model fine-tuned with limited samples
+    """
     sample_sizes: list[int] = [10, 20, 30, 40, 50]
 
     for sample_size in sample_sizes:
-        model: str = 'paere_' + str(sample_size)
-        config = __load_config()
-        data.file_generator.generate(json.loads(config.get('ALLO', 'Subjects')), config.get('ALLO', 'API_Path'),
-                                     config.get('ALLO', 'API_Token'), False)
-        ft.fine_tune(str(Path().resolve()) + '/data/', model)
         __make_subset_sample_folder('data/samples', sample_size)
-        print(__get_accuracy(model, 'data/samples_' + str(sample_size)))
+
+    with open("result.txt", "w") as result_file:
+        result_file.write("")
+
+    for sample_size in sample_sizes:
+        model: str = 'paere_' + str(sample_size)
+        data.file_generator.generate(str(pathlib.Path().resolve()) + '/data/samples_' + str(sample_size) + '/')
+        ft.fine_tune(str(Path().resolve()) + '/data/', model)
+
+        correct_predictions, predictions = __get_accuracy(model, 'data/samples_validation')
+
+        with open("result.txt", "a") as result_file:
+            print(str(correct_predictions) + ' ' + str(predictions))
+            if predictions > 0:
+                result_file.write(str(sample_size) + ": " + str(correct_predictions) + "/" + str(predictions) +
+                                  "(" + str(correct_predictions / predictions) + ")\n")
 
 
 def __make_subset_sample_folder(data_path: str, nr_samples: int):
-    loader = data_loader.DataLoader()
-    loader.add_folder_to_model(data_path)
-    files = loader.get_data_files()
-
     new_directory: str = data_path + "_" + str(nr_samples)
     os.makedirs(new_directory, exist_ok=True)
 
@@ -101,11 +122,20 @@ def __make_subset_sample_folder(data_path: str, nr_samples: int):
     for key in WordPhonemeMap.word_phoneme_map.keys():
         samples_of_words[key] = 0
 
-    for file in files:
-        word: str = str(file.get_filename).split('-')[-1].split('.')[0]
-        if WordPhonemeMap.contains(word) and samples_of_words.get(word) < nr_samples:
-            file.save(new_directory + "/" + file.get_filename)
-            samples_of_words[word] = samples_of_words[word] + 1
+    config = __load_config()
+    LOSO_subjects: list[str] = json.loads(config.get('ALLO', 'Subjects'))
+
+    for filename in os.listdir(data_path):
+        f = os.path.join(data_path, filename)
+        # checking if it is a file
+        if os.path.isfile(f) and filename.endswith(".wav"):
+            word: str = str(filename).split('-')[-1].split('.')[0]
+            subject: str = str(filename).split('-')[-2]
+
+            if WordPhonemeMap.contains(word) and samples_of_words.get(word) < nr_samples \
+                    and subject not in LOSO_subjects:
+                shutil.copy2(f, new_directory + "/" + filename)
+                samples_of_words[word] = samples_of_words[word] + 1
 
 
 def __get_accuracy(model: str, data_path: str) -> (float, float):
@@ -134,7 +164,8 @@ def __get_accuracy(model: str, data_path: str) -> (float, float):
         word: str = str(file.get_filename).split('-')[-1].split('.')[0]
         if WordPhonemeMap.contains(word):
             predictions += 1
-            if WordPhonemeMap.get(word) == res:
+            if (word == "paere" and WordPhonemeMap.get(word) == res) \
+                    or (word != "paere" and WordPhonemeMap.get("paere") != res):
                 correct_predictions += 1
         else:
             print(word + " is not recognized as a valid word")
