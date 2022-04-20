@@ -37,7 +37,7 @@ def fine_tune(data_dir: str, config: configparser.ConfigParser, model_name: str 
     pf.prepare_feature(pathlib.Path(data_dir + "/validate"), "uni2005/")
     pt.prepare_token(pathlib.Path(data_dir + "/validate"), "uni2005/", 'dan')
 
-    for epochs in range(70, 5, -5):
+    for epochs in range(35, 5, -5):
         print("Training model with " + str(epochs) + " epochs...")
 
         model = model_name + "_" + str(epochs)
@@ -95,8 +95,8 @@ def recognize_directory(model: str, config: configparser.ConfigParser) -> (int, 
         aud = audio.Audio(file.time_series, file.get_sampling_rate)
         res: str = model.recognize(aud)
 
-        # if (word == "paere" and phoneme == res) or (word != "paere" and res != phoneme_map.get("paere")):
-        if phoneme == res:
+        # if phoneme == res:
+        if (word == "paere" and phoneme == res) or (word != "paere" and res != phoneme_map.get("paere")):
             correct_classified += 1
 
         if phoneme != "":
