@@ -17,28 +17,19 @@ from processing import data_loader
 
 
 def main():
+    model: str = "paere"
+
     # fetch data if samples do not exist
-    samples_dir = str(pathlib.Path().resolve()) + '/data/samples/'
     config = __load_config()
-    if not (os.path.exists(samples_dir) and len(os.listdir(samples_dir)) > 0):
-        data.file_generator.retrieve_files_from_api(json.loads(config.get('ALLO', 'Subjects')),
-                                                    config.get('ALLO', 'API_Path'), config.get('ALLO', 'API_Token'),
-                                                    str(pathlib.Path().resolve()) + '/data/samples/')
+    data.file_generator.retrieve_files_from_api(json.loads(config.get('ALLO', 'Subjects')),
+                                                config.get('ALLO', 'API_Path'), config.get('ALLO', 'API_Token'),
+                                                str(pathlib.Path().resolve()) + '/data/samples/')
 
-    run_limited_samples_test()
+    fine_tune_model(model)
+    correct_predictions, predictions = __get_accuracy(model, 'data/samples_validation')
+
+    print("Accuracy of model: " + model + " = " + str(correct_predictions / predictions))
     return
-
-
-def __load_config() -> Union[configparser.ConfigParser, None]:
-    base_folder = os.path.dirname(os.path.abspath(__file__))
-    config_file = 'config.cnf'
-    if not os.path.exists(config_file) or not os.path.isfile(config_file):
-        print(f'Config file missing... Path should be {os.getcwd()}/config.cfg')
-        return
-
-    config = configparser.ConfigParser()
-    config.read(os.path.join(base_folder, config_file))
-    return config
 
 
 def fine_tune_model(model_name: str = "paere"):
@@ -49,43 +40,6 @@ def fine_tune_model(model_name: str = "paere"):
     """
     data.file_generator.generate(str(pathlib.Path().resolve()) + '/data/samples/')
     ft.fine_tune(str(Path().resolve()) + '/data/', model_name)
-
-
-def recognize_directory(model: str, data_path: str):
-    """
-    Predict the files found in the data_path, using the model
-
-    :param model: name of the model to use
-    :param data_path: path to the samples being predicted
-    """
-    model = allo.read_recognizer(alt_model_path=Path('allosaurus/allosaurus/pretrained/' + model))
-
-    loader = data_loader.DataLoader()
-    loader.add_folder_to_model(data_path)
-    files = loader.get_data_files()
-
-    for file in files:
-        aud = allosaurus.allosaurus.audio.Audio(
-            file.time_series,
-            file.get_sampling_rate)
-        res: str = model.recognize(aud)
-        print(file.get_filename + ": " + res)
-
-
-def recognize(model: str, sample_time_series: numpy.ndarray, sample_sample_rate: int) -> str:
-    """
-    Predict a sample based on time series and sample rate
-
-    :param model: name of the model to use
-    :param sample_time_series: time series representation of the sample
-    :param sample_sample_rate: sample rate of the sample
-    """
-    model = allo.read_recognizer(alt_model_path=Path('allosaurus/allosaurus/pretrained/' + model))
-
-    aud = allosaurus.allosaurus.audio.Audio(
-        sample_time_series,
-        sample_sample_rate)
-    return model.recognize(aud)
 
 
 def run_limited_samples_test():
@@ -112,6 +66,55 @@ def run_limited_samples_test():
             if predictions > 0:
                 result_file.write(str(sample_size) + ": " + str(correct_predictions) + "/" + str(predictions) +
                                   "(" + str(correct_predictions / predictions) + ")\n")
+
+
+def recognize(model: str, sample_time_series: numpy.ndarray, sample_sample_rate: int) -> str:
+    """
+    Predict a sample based on time series and sample rate
+
+    :param model: name of the model to use
+    :param sample_time_series: time series representation of the sample
+    :param sample_sample_rate: sample rate of the sample
+    """
+    model = allo.read_recognizer(alt_model_path=Path('allosaurus/allosaurus/pretrained/' + model))
+
+    aud = allosaurus.allosaurus.audio.Audio(
+        sample_time_series,
+        sample_sample_rate)
+    return model.recognize(aud)
+
+
+def recognize_directory(model: str, data_path: str):
+    """
+    Predict the files found in the data_path, using the model
+
+    :param model: name of the model to use
+    :param data_path: path to the samples being predicted
+    """
+    model = allo.read_recognizer(alt_model_path=Path('allosaurus/allosaurus/pretrained/' + model))
+
+    loader = data_loader.DataLoader()
+    loader.add_folder_to_model(data_path)
+    files = loader.get_data_files()
+
+    for file in files:
+        aud = allosaurus.allosaurus.audio.Audio(
+            file.time_series,
+            file.get_sampling_rate)
+        res: str = model.recognize(aud)
+        print(file.get_filename + ": " + res)
+
+
+def __load_config() -> Union[configparser.ConfigParser, None]:
+    base_folder = os.path.dirname(os.path.abspath(__file__))
+    config_file = 'config.cnf'
+    if not os.path.exists(config_file) or not os.path.isfile(config_file):
+        print(f'Config file missing... Path should be {os.getcwd()}/config.cfg')
+        return
+
+    config = configparser.ConfigParser()
+    config.read(os.path.join(base_folder, config_file))
+    return config
 
 
 def __make_subset_sample_folder(data_path: str, nr_samples: int):
