@@ -35,16 +35,14 @@ python -m allosaurus.run -i sample.wav
 ```
 
 You can also use allosaurus directly in python
-
 ```python
-import model_tester
 from allosaurus.app import read_recognizer
 
 # load your model
 model = read_recognizer()
 
 # run inference -> æ l u s ɔ ɹ s
-model_tester.recognize('sample.wav')
+model.recognize('sample.wav')
 ```
 
 For full features and details, please refer to the following sections.
@@ -59,16 +57,14 @@ It will recognize the narrow phones in the audio file(s).
 Only the input argument is mandatory, other options can ignored. Please refer to following sections for their details. 
 
 There is also a simple python interface as follows:
-
 ```python
-import model_tester
 from allosaurus.app import read_recognizer
 
 # load your model by the <model name>, will use 'latest' if left empty
 model = read_recognizer(model)
 
 # run inference on <audio_file> with <lang>, lang will be 'ipa' if left empty
-model_tester.recognize(audio_file, lang)
+model.recognize(audio_file, lang)
 ```
 
 The details of arguments in both interface are as follows:
@@ -194,10 +190,8 @@ Note that the current timestamp is only an approximation. It is provided by the 
 The same interface is also available in python as follows:
 
 ```python
-import model_tester
-
 model = read_recognizer()
-model_tester.recognize('./sample.wav', timestamp=True)
+model.recognize('./sample.wav', timestamp=True)
 ```
 
 

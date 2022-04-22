@@ -1,4 +1,3 @@
-import model_tester
 from allosaurus.allosaurus.app import read_recognizer
 from allosaurus.allosaurus.model import get_all_models, resolve_model_name
 from allosaurus.allosaurus.bin.download_model import download_model
@@ -47,7 +46,7 @@ def main():
     if input_path.is_dir():
         wav_list = sorted(list(input_path.glob('*.wav')))
         for wav_path in wav_list:
-            phones = model_tester.recognize(str(wav_path), args.lang, args.topk, args.emit, args.timestamp)
+            phones = recognizer.recognize(str(wav_path), args.lang, args.topk, args.emit, args.timestamp)
 
             # output format would be different when using timestamp
             if args.timestamp:
@@ -69,7 +68,7 @@ def main():
         assert args.input.endswith('.wav'), " Error: Please use a wav file. other audio files can be converted to wav by sox"
 
         # run inference
-        phones = model_tester.recognize(args.input, args.lang, args.topk, args.emit, args.timestamp)
+        phones = recognizer.recognize(args.input, args.lang, args.topk, args.emit, args.timestamp)
 
         if output_fd:
             output_fd.write(phones+'\n')
