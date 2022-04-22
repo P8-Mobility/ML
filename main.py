@@ -14,11 +14,11 @@ from processing import data_loader
 
 
 def main():
-    model: str = 'paere'
+    model: str = 'paere_30'
     config = __load_config()
-    data.file_generator.generate(json.loads(config.get('ALLO', 'Subjects')), config.get('ALLO', 'API_Path'),
-                                 config.get('ALLO', 'API_Token'), True)
-    ft.fine_tune(str(pathlib.Path().resolve()) + '/data/', model)
+    # data.file_generator.generate(json.loads(config.get('ALLO', 'Subjects')), config.get('ALLO', 'API_Path'),
+    #                              config.get('ALLO', 'API_Token'), True)
+    # ft.fine_tune(str(pathlib.Path().resolve()) + '/data/', model)
     recognize_directory(model, 'data/samples')
 
     return
