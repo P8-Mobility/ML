@@ -21,7 +21,7 @@ def main():
                                                 str(pathlib.Path().resolve()) + '/data/samples/')
 
     data.file_generator.generate(str(pathlib.Path().resolve()) + '/data/samples/')
-    ft.fine_tune(str(Path().resolve()) + '/data/', model)
+    model_tester.run_limited_samples_test()
     correct_predictions, predictions = model_tester.get_accuracy(model, 'data/samples_validation')
 
     print("Accuracy of model: " + model + " = " + str(correct_predictions / predictions))
