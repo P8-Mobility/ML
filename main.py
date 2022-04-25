@@ -22,7 +22,7 @@ def main():
 
     data.file_generator.generate(str(pathlib.Path().resolve()) + '/data/samples/')
     model_tester.run_limited_samples_test()
-    correct_predictions, predictions = model_tester.get_accuracy(model, 'data/samples_validation')
+    correct_predictions, predictions, _ = model_tester.get_accuracy(model, 'data/samples_validation')
 
     print("Accuracy of model: " + model + " = " + str(correct_predictions / predictions))
     return

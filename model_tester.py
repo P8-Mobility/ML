@@ -68,6 +68,7 @@ def get_accuracy(model: str, data_path: str) -> (float, float):
 
     predictions: int = 0
     correct_predictions: int = 0
+    incorrect_predictions: dict[str, int] = {}
 
     for file in files:
         aud = allosaurus.allosaurus.audio.Audio(
@@ -81,8 +82,10 @@ def get_accuracy(model: str, data_path: str) -> (float, float):
             if (word == "paere" and WordPhonemeMap.get(word) == res) \
                     or (word != "paere" and WordPhonemeMap.get("paere") != res):
                 correct_predictions += 1
+            else:
+                incorrect_predictions[word] = incorrect_predictions.get(word, 0) + 1
 
-    return correct_predictions, predictions
+    return correct_predictions, predictions, incorrect_predictions
 
 
 def run_limited_samples_test():
@@ -102,12 +105,14 @@ def run_limited_samples_test():
         data.file_generator.generate(str(pathlib.Path().resolve()) + '/data/samples_' + str(sample_size) + '/')
         ft.fine_tune(str(Path().resolve()) + '/data/', model)
 
-        correct_predictions, predictions = get_accuracy(model, 'data/samples_validation')
+        correct_predictions, predictions, incorrect_predictions = get_accuracy(model, 'data/samples_validation')
 
         with open("result.txt", "a") as result_file:
             if predictions > 0:
                 result_file.write(str(sample_size) + ": " + str(correct_predictions) + "/" + str(predictions) +
-                                  "(" + str(correct_predictions / predictions) + ")\n")
+                                  "(" + str(correct_predictions / predictions) + ") [" +
+                                  ", ".join([key + ": " + str(value) for key, value in incorrect_predictions.items()])
+                                  + "]\n")
 
 
 def __make_subset_sample_folder(data_path: str, nr_samples: int):
