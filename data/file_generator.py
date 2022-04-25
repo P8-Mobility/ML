@@ -11,16 +11,27 @@ from data.word_phoneme_map import WordPhonemeMap
 from processing import data_loader
 
 
-def generate(samples_path: str = "/data/samples/"):
+def generate(samples_path: str = "/data/samples/", LOSO_subjects=None):
     """
     Fetches audio samples from api and saves samples in their respective directories
 
     :param samples_path: path to the folder containing the samples that should be used to generate training files
     """
+    if LOSO_subjects is None:
+        LOSO_subjects = []
+
     file_paths: list[str] = glob.glob(samples_path + "*.wav")
+    training_set: list[str] = []
+    validation_set: list[str] = []
+
+    for fp in file_paths:
+        subject = str(fp).split('-')[-2]
+        if subject in LOSO_subjects:
+            validation_set.append(fp)
+        else:
+            training_set.append(fp)
 
     # generate wave and text files for training
-    training_set: list[str] = file_paths[:math.floor(len(file_paths) * 0.8)]
     train_wave_file_lines, train_text_file_lines = __get_lines_for_wave_and_text_files(training_set)
 
     if not (train_wave_file_lines and train_text_file_lines):
@@ -30,7 +41,6 @@ def generate(samples_path: str = "/data/samples/"):
                                   train_text_file_lines)
 
     # generate wave and text files for validation
-    validation_set: list[str] = file_paths[math.floor(round(len(file_paths)) * 0.8):]
     validate_wave_file_lines, validate_text_file_lines = __get_lines_for_wave_and_text_files(validation_set)
 
     if not (validate_wave_file_lines and validate_text_file_lines):
@@ -65,15 +75,6 @@ def retrieve_files_from_api(subject_ids: list[str], api_path: str, api_token: st
         zip_ref.extractall(samples_dir)
     os.remove(temp_zip_file)
     __preprocess_files_and_overwrite(samples_dir)
-
-    # move samples from LOSO subjects into validation directory
-    validation_samples_dir = "data/samples_validation"
-    __clear_directory(validation_samples_dir)
-    if not os.path.exists(validation_samples_dir) or len(os.listdir(validation_samples_dir)) == 0:
-        os.makedirs(validation_samples_dir, exist_ok=True)
-    for file_path in glob.glob(samples_dir + "*.wav"):
-        if file_path.split('-')[2] in subject_ids:
-            shutil.move(file_path, 'data/samples_validation/')
 
 
 def __get_lines_for_wave_and_text_files(files: list[str]):

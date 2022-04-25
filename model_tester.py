@@ -102,7 +102,8 @@ def run_limited_samples_test():
 
     for sample_size in sample_sizes:
         model: str = 'paere_' + str(sample_size)
-        data.file_generator.generate(str(pathlib.Path().resolve()) + '/data/samples_' + str(sample_size) + '/')
+        data.file_generator.generate(str(pathlib.Path().resolve()) + '/data/samples_' + str(sample_size) + '/',
+                                     json.loads(__load_config().get('ALLO', 'Subjects')))
         ft.fine_tune(str(Path().resolve()) + '/data/', model)
 
         correct_predictions, predictions, incorrect_predictions = get_accuracy(model, 'data/samples_validation')
@@ -133,7 +134,9 @@ def __make_subset_sample_folder(data_path: str, nr_samples: int):
             word: str = str(filename).split('-')[-1].split('.')[0]
             subject: str = str(filename).split('-')[-2]
 
-            if WordPhonemeMap.contains(word) and samples_of_words.get(word) < nr_samples \
-                    and subject not in LOSO_subjects:
-                shutil.copy2(f, new_directory + "/" + filename)
-                samples_of_words[word] = samples_of_words[word] + 1
+            if WordPhonemeMap.contains(word):
+                if subject not in LOSO_subjects and samples_of_words.get(word) < nr_samples:
+                    samples_of_words[word] = samples_of_words[word] + 1
+                    shutil.copy2(f, new_directory + "/" + filename)
+                elif subject in LOSO_subjects:
+                    shutil.copy2(f, new_directory + "/" + filename)

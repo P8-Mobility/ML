@@ -16,11 +16,13 @@ def main():
 
     # fetch data from rest
     config = __load_config()
-    data.file_generator.retrieve_files_from_api(json.loads(config.get('ALLO', 'Subjects')),
-                                                config.get('ALLO', 'API_Path'), config.get('ALLO', 'API_Token'),
-                                                str(pathlib.Path().resolve()) + '/data/samples/')
+    if not os.path.isdir(str(pathlib.Path().resolve()) + '/data/samples/') or len(os.listdir(str(pathlib.Path().resolve()) + '/data/samples/')) == 0:
+        data.file_generator.retrieve_files_from_api(json.loads(config.get('ALLO', 'Subjects')),
+                                                    config.get('ALLO', 'API_Path'), config.get('ALLO', 'API_Token'),
+                                                    str(pathlib.Path().resolve()) + '/data/samples/')
 
-    data.file_generator.generate(str(pathlib.Path().resolve()) + '/data/samples/')
+    data.file_generator.generate(str(pathlib.Path().resolve()) + '/data/samples/',
+                                 json.loads(config.get('ALLO', 'Subjects')))
     model_tester.run_limited_samples_test()
     correct_predictions, predictions, _ = model_tester.get_accuracy(model, 'data/samples_validation')
 
