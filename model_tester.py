@@ -93,7 +93,7 @@ def run_limited_samples_test():
     """
     Execute test for model fine-tuned with limited samples
     """
-    sample_sizes: list[int] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50]
+    sample_sizes: list[int] = [size for size in range(1, 50)]
 
     for sample_size in sample_sizes:
         __make_subset_sample_folder('data/samples', sample_size)

@@ -16,7 +16,7 @@ def main():
 
     # fetch data from rest
     config = __load_config()
-    if not os.path.isdir(str(pathlib.Path().resolve()) + '/data/samples/') or len(
+    if (not os.path.isdir(str(pathlib.Path().resolve()) + '/data/samples/')) or len(
             os.listdir(str(pathlib.Path().resolve()) + '/data/samples/')) == 0:
         data.file_generator.retrieve_files_from_api(json.loads(config.get('ALLO', 'Subjects')),
                                                     config.get('ALLO', 'API_Path'), config.get('ALLO', 'API_Token'),
