@@ -5,6 +5,7 @@ import shutil
 from pathlib import Path
 
 import numpy
+import matplotlib.pyplot as plt
 
 import allosaurus.allosaurus
 import data.file_generator
@@ -111,7 +112,7 @@ def run_limited_samples_test():
         with open("result.txt", "a") as result_file:
             if predictions > 0:
                 result_file.write(str(sample_size) + ": " + str(correct_predictions) + "/" + str(predictions) +
-                                  "(" + str(correct_predictions / predictions) + ") [" +
+                                  " (" + str(correct_predictions / predictions) + ") [" +
                                   ", ".join([key + ": " + str(value) for key, value in incorrect_predictions.items()])
                                   + "]\n")
 
@@ -140,3 +141,27 @@ def __make_subset_sample_folder(data_path: str, nr_samples: int):
                     shutil.copy2(f, new_directory + "/" + filename)
                 elif subject in LOSO_subjects:
                     shutil.copy2(f, new_directory + "/" + filename)
+
+
+def plot_result():
+    """
+    Plots the results found in 'results.txt' and saves the figure in the root of the project
+    """
+    if os.path.isfile("result.txt"):
+        test_results: dict[int, list[int]] = {0: [0, 0]}
+
+        with open("result.txt", "r") as f:
+            for line in f:
+                line_segments: list[str] = line.split(" ")
+                test_results[int(line_segments[0].split(':')[0])] = [int(value) for value in line_segments[1].split('/')]
+
+        plt.title("Results from fine-tuning with subset")
+        plt.xlabel('Correct classifications')
+        plt.ylabel('Subset size (samples of each word)')
+        plt.axis([0, max([subset_size for subset_size in test_results.keys()]), 0, max([sub_results[1] for sub_results in test_results.values()])])
+        plt.xticks([res - res % 2 for res in test_results.keys()])
+        plt.plot([subset_size for subset_size in test_results.keys()], [sub_results[0] for sub_results in test_results.values()], marker ='.')
+        plt.savefig("plottedSubsetFineTuningResults.png")
+
+    else:
+        print("Unable to generate plot, as result.txt does not exists")
