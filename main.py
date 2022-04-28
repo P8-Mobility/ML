@@ -15,13 +15,14 @@ from data.word_phoneme_map import WordPhonemeMap
 
 
 def main():
-    model: str = 'paere_30'
+    model: str = 'paere'
     config = __load_config()
-    # data.file_generator.generate(json.loads(config.get('ALLO', 'Subjects')), config.get('ALLO', 'API_Path'),
-    #                              config.get('ALLO', 'API_Token'), True)
-    # ft.fine_tune(str(pathlib.Path().resolve()) + '/data/', config, model)
-    recognize_directory("paere_30", 'data/test', config)
+    data.file_generator.generate(json.loads(config.get('ALLO', 'Subjects')), config.get('ALLO', 'API_Path'),
+                                  config.get('ALLO', 'API_Token'), True)
+    ft.fine_tune(str(pathlib.Path().resolve()) + '/data/', config, model)
 
+    for epochs in range(70, 5, -5):
+        recognize_directory("paere_" + str(epochs), 'data/test', config)
 
     return
 
@@ -47,6 +48,8 @@ def recognize_directory(model: str, path: str, config: configparser.ConfigParser
     :param config: configuration file
     :return: number of total classified recordings and number of correctly classified recordings
     """
+    model_name = model
+
     model = allo.read_recognizer(alt_model_path=Path('allosaurus/allosaurus/pretrained/' + model))
     phoneme_map = WordPhonemeMap
 
@@ -74,6 +77,7 @@ def recognize_directory(model: str, path: str, config: configparser.ConfigParser
 
     # print("Correct classified: " + str(correct_classified))
     # print("Total classified: " + str(total_classified))
+    print("### "+model_name+" ###")
     print("Accuracy: " + str(correct_classified/total_classified))
 
 

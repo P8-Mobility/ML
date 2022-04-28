@@ -37,7 +37,7 @@ def fine_tune(data_dir: str, config: configparser.ConfigParser, model_name: str 
     pf.prepare_feature(pathlib.Path(data_dir + "/validate"), "uni2005/")
     pt.prepare_token(pathlib.Path(data_dir + "/validate"), "uni2005/", 'dan')
 
-    for epochs in range(35, 15, -5):
+    for epochs in range(70, 15, -5):
         print("Training model with " + str(epochs) + " epochs...")
 
         model = model_name + "_" + str(epochs)
