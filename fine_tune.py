@@ -37,7 +37,7 @@ def fine_tune(data_dir: str, config: configparser.ConfigParser, model_name: str 
     pf.prepare_feature(pathlib.Path(data_dir + "/validate"), "uni2005/")
     pt.prepare_token(pathlib.Path(data_dir + "/validate"), "uni2005/", 'dan')
 
-    for epochs in range(70, 15, -5):
+    for epochs in range(35, 15, -5):
         print("Training model with " + str(epochs) + " epochs...")
 
         model = model_name + "_" + str(epochs)
@@ -46,7 +46,7 @@ def fine_tune(data_dir: str, config: configparser.ConfigParser, model_name: str 
         shutil.rmtree(pathlib.Path(allo_path + model), ignore_errors=True)
 
         # command to fine_tune your data
-        os.system("python -m allosaurus.allosaurus.bin.adapt_model --pretrained_model=uni2005 --new_model=" + model + " --path=" + data_dir + " --lang=dan --device_id=0 --epoch=" + str(epochs))
+        os.system("python -m allosaurus.allosaurus.bin.adapt_model --pretrained_model=uni2005 --new_model=" + model + " --path=" + data_dir + " --lang=dan --device_id=-1 --epoch=" + str(epochs))
 
         # Find all saved states of the model during training for deletion
         file_list = glob.glob(allo_path + model_name + "_" + str(epochs)+"/model_*.pt")

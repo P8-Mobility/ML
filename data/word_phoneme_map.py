@@ -14,8 +14,8 @@ class WordPhonemeMap:
         "putin": "pʰ u t e n",
         "aere": "æː ɐ",
         "er": "æ ɐ",
-        "myre": "m y: ɐ",
-        "mure": "m u: ɐ"
+        "myre": "m yː ɐ",
+        "mure": "m uː ɐ"
     }
 
     @staticmethod
