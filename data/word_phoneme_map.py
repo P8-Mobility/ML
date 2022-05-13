@@ -13,7 +13,9 @@ class WordPhonemeMap:
         "pony": "pʰ ɒ n i",
         "putin": "pʰ u t e n",
         "aere": "æː ɐ",
-        "er": "æ ɐ"
+        "er": "æ ɐ",
+        "myre": "m yː ɐ",
+        "mure": "m uː ɐ"
     }
 
     @staticmethod

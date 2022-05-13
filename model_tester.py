@@ -80,8 +80,12 @@ def get_accuracy(model: str, data_path: str) -> (float, float):
         word: str = str(file.get_filename).split('-')[-1].split('.')[0]
         if WordPhonemeMap.contains(word):
             predictions += 1
-            if (word == "paere" and WordPhonemeMap.get(word) == res) \
-                    or (word != "paere" and WordPhonemeMap.get("paere") != res):
+            if word == "paere" and WordPhonemeMap.get(word) == res:
+                correct_predictions += 1
+            elif word == "myre" and WordPhonemeMap.get(word) == res:
+                correct_predictions += 1
+            elif word != "paere" and word != "myre" and WordPhonemeMap.get("paere") != res \
+                    and WordPhonemeMap.get("myre") != res:
                 correct_predictions += 1
             else:
                 incorrect_predictions[word] = incorrect_predictions.get(word, 0) + 1
@@ -93,7 +97,7 @@ def run_limited_samples_test():
     """
     Execute test for model fine-tuned with limited samples
     """
-    sample_sizes: list[int] = [size for size in range(1, 50)]
+    sample_sizes: list[int] = [size for size in range(1, 30)]
 
     for sample_size in sample_sizes:
         __make_subset_sample_folder('data/samples', sample_size)
@@ -155,12 +159,27 @@ def plot_result():
                 line_segments: list[str] = line.split(" ")
                 test_results[int(line_segments[0].split(':')[0])] = [int(value) for value in line_segments[1].split('/')]
 
+        # set title and axis labels
         plt.title("Results from fine-tuning with subset")
-        plt.xlabel('Correct classifications')
-        plt.ylabel('Subset size (samples of each word)')
-        plt.axis([0, max([subset_size for subset_size in test_results.keys()]), 0, max([sub_results[1] for sub_results in test_results.values()])])
+        plt.xlabel('Subset size (samples of each word)')
+        plt.ylabel('Accuracy (%)')
+
+        # set size of the graph
+        plt.axis([0, max([subset_size for subset_size in test_results.keys()]), 0, 100])
+
+        # make sure that ticks are added to the x-axis for every other subset size
         plt.xticks([res - res % 2 for res in test_results.keys()])
-        plt.plot([subset_size for subset_size in test_results.keys()], [sub_results[0] for sub_results in test_results.values()], marker ='.')
+
+        # make sure that ticks are added to the y-axis for every 10 percent
+        yticks = [y - y % 10 for y in range(0, 100)]
+        yticks.append(100)
+        plt.yticks(yticks)
+
+        # plot results
+        plt.plot([subset_size for subset_size in test_results.keys()], [(sub_results[0] / sub_results[1] * 100 if sub_results[1] != 0 else 0) for sub_results in test_results.values()], marker ='.')
+
+        # add dotted line representing our 70% target accuracy
+        plt.plot([70 for _ in test_results.keys()], 'r--')
         plt.savefig("plottedSubsetFineTuningResults.png")
 
     else:

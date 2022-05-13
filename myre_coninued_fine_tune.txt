@@ -1,0 +1,2 @@
+Paere with 11 samples: (36, 56, {'myre': 5, 'paere': 15})
+Fine tuned for myre: (26, 56, {'paere': 26, 'myre': 3, 'aere': 1})
