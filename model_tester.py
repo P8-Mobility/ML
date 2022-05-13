@@ -53,7 +53,7 @@ def recognize_directory(model: str, data_path: str):
         print(file.get_filename + ": " + res)
 
 
-def get_accuracy(model: str, data_path: str) -> (float, float):
+def get_accuracy(model: str, data_path: str) -> (float, float, dict[str, int]):
     """
     Predict the files found in the data_path, using the model
     and return the correctly predicted samples / number of samples
@@ -93,7 +93,7 @@ def run_limited_samples_test():
     """
     Execute test for model fine-tuned with limited samples
     """
-    sample_sizes: list[int] = [size for size in range(1, 50)]
+    sample_sizes: list[int] = [11]
 
     for sample_size in sample_sizes:
         __make_subset_sample_folder('data/samples', sample_size)
@@ -104,7 +104,7 @@ def run_limited_samples_test():
     for sample_size in sample_sizes:
         model: str = 'paere_' + str(sample_size)
         data.file_generator.generate(str(pathlib.Path().resolve()) + '/data/samples_' + str(sample_size) + '/',
-                                     json.loads(__load_config().get('ALLO', 'Subjects')))
+                                    json.loads(__load_config().get('ALLO', 'Subjects')))
         ft.fine_tune(str(Path().resolve()) + '/data/', model)
 
         correct_predictions, predictions, incorrect_predictions = get_accuracy(model, 'data/samples_validation')

@@ -13,7 +13,7 @@ class WordPhonemeMap:
         "pony": "pʰ ɒ n i",
         "putin": "pʰ u t e n",
         "aere": "æː ɐ",
-        "er": "æ ɐ"
+        "er": "æ ɐ",
     }
 
     @staticmethod
